@@ -2,10 +2,10 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - master
+      - main 
   pull_request:
     branches:
-      - master
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,12 +34,12 @@ jobs:
         run: |
           sshpass -p "${SSH_KEY}" ssh -o StrictHostKeyChecking=no ${SSH_USERNAME}@${SSH_HOST} << 'EOF'
           cd /var/www/MERN15/frontend
-          git pull origin master
+          git pull origin main
           npm install
           npm run build
           systemctl restart nginx
           cd /var/MERN15/backend
-          git pull origin master
+          git pull origin main 
           npm install
           pm2 restart server
           EOF
