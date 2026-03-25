@@ -41,5 +41,5 @@ jobs:
           cd /var/MERN15/backend
           git pull origin main 
           npm install
-          pm2 restart domino-backed-server
+          pm2 restart domino-backend-server
           EOF
