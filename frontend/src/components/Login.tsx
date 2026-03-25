@@ -3,6 +3,14 @@ import { buildPath } from './Path';
 import { storeToken } from '../tokenStorage';
 import { jwtDecode } from 'jwt-decode';
 
+
+interface JwtPaylod{
+  userId: number;
+  firstName : string;
+  lastName : string;
+  iat: any;
+}
+
 function Login() {
 
   const [message, setMessage] = useState('');
@@ -16,7 +24,6 @@ function Login() {
     var js = JSON.stringify(obj);
 
     try {
-      console.log('Calling:', buildPath('api/login')); // add this
       const response = await fetch(buildPath('api/login'),
         { method: 'POST', body: js, headers: { 'Content-Type': 'application/json' } });
 
@@ -25,10 +32,11 @@ function Login() {
       const { accessToken } = res;
       storeToken(res);
 
-      const decoded = jwtDecode(accessToken);
+      const decoded = jwtDecode<JwtPaylod>(accessToken);
 
       try {
         var ud = decoded;
+        console.log("Decoded: " + ud);
         var userId = ud.iat;
         var firstName = ud.firstName;
         var lastName = ud.lastName;
