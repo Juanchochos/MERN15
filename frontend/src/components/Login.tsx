@@ -36,8 +36,7 @@ function Login() {
 
       try {
         var ud = decoded;
-        console.log("Decoded: " + ud);
-        var userId = ud.iat;
+        var userId = ud.userId;
         var firstName = ud.firstName;
         var lastName = ud.lastName;
 

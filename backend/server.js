@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:5173' // Vite's default port
+  origin: ['http://localhost:5173', 'http://rickymetral.xyz'] // Vite's default port
 }));
 // app.use(bodyParser.json());
 app.use(express.json());
