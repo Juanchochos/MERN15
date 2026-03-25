@@ -1,4 +1,4 @@
-const app_name = 'cop4331c.johnaedo.com';
+const app_name = 'rickymetral.xyz';
 
 export
     function buildPath(route: string): string {
