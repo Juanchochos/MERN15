@@ -6,6 +6,6 @@ export
             return 'http://localhost:5000/' + route;
         }
         else {
-            return 'http://' + app_name + route;
+            return 'http://' + app_name +':5000' + route;
         }
     }
