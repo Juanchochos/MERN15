@@ -1,13 +1,15 @@
 const token = require("./createJWT.js");
 const User = require("./models/user.js");
 const Card = require("./models/card.js");
+const md5 = require("md5")
 
 exports.setApp = function (app, client) {
     
   app.post('/api/login', async (req, res) => {
     var error = '';
     const { login, password } = req.body;
-    const results = await User.find({ Login: login, Password: password });
+    const hash  = md5(password);
+    const results = await User.find({ Login: login, Password: hash});
     var id = -1; var fn = ''; var ln = '';
     var ret;
     if (results.length > 0) {
@@ -23,6 +25,43 @@ exports.setApp = function (app, client) {
       ret = { error: "Login/Password incorrect" };
     }
     res.status(200).json(ret);
+  });
+
+  app.post('/api/register', async (req, res) => {
+    const { login, password, firstName, lastName, email} = req.body;
+    var error = '';
+    var ret;
+    try{
+      const existing = await User.findOne({Login: login});
+      console.log("Exising: " + existing);
+      if(existing != null){
+        return res.status(409).json({error: "User Already Exists"});
+      }
+      const hash  = md5(password);
+      const newUser = new User({ 
+          Login: login,
+          Password: hash,
+          FirstName: firstName,
+          LastName: lastName,
+          Email: email
+      });
+      const saved = await newUser.save();
+      ret = token.createToken(saved.FirstName, saved.LastName, saved.UserId);
+      res.status(201).json(ret);
+    }
+    catch (e) {
+        console.error("Register error:", e);
+
+        if (e.name === 'ValidationError') {
+            return res.status(400).json({ error: e.message });
+        }
+
+        if (e.code === 11000) { 
+            return res.status(409).json({ error: 'Duplicate field value' });
+        }
+
+        return res.status(500).json({ error: 'Internal server error' });
+    }
   });
 
   app.post('/api/addcard', async (req, res) => {
