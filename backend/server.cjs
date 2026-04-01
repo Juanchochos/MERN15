@@ -1,14 +1,13 @@
 require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const mongoose = require("mongoose");
-const app = express();
+const { Server } = require('boardgame.io/server');
+const { DominoGame } = require('./games/domino.js');
 
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://rickymetral.xyz'] // Vite's default port
-}));
+const mongoose = require("mongoose");
 // app.use(bodyParser.json());
-app.use(express.json());
+const server = Server({
+  games: [DominoGame],
+  origins: ['http://localhost:5173', 'http://rickymetral.xyz'] // Vite's default port
+})
 
 
 const url = process.env.MONGODB_URI;
@@ -16,10 +15,10 @@ mongoose.connect(url)
   .then(() => console.log("Mongo DB connected"))
   .catch(err => console.log(err));
 
-var api = require('./api.js');
-api.setApp(app, mongoose );
+var api = require('./api.cjs');
+api.setApp(server, mongoose );
 
-app.use((req, res, next) => 
+server.app.use((req, res, next) => 
 {
   app.get("/api/ping", (req, res, next) => {
 	res.status(200).json({ message: "Hello World" });
@@ -36,4 +35,4 @@ app.use((req, res, next) =>
   next();
 });
 
-app.listen(5000); // start Node + Express server on port 5000
+server.run(5000, () => console.log('Server on :5000'));

@@ -1,5 +1,5 @@
 //Class to represent a single domino tile
-class DominoTile {
+export class DominoTile {
     constructor(top, bottom) {
         this.top = top;
         this.bottom = bottom;
@@ -38,7 +38,7 @@ class DominoTile {
 
 
 //Shuffles the graveyard
-function shuffle(array) {
+export function shuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
@@ -47,7 +47,7 @@ function shuffle(array) {
 }
 
 //Checks if a player can play at least one domino in their hand
-function canPlayDomino(left_end, right_end, hand){
+export function canPlayDomino(left_end, right_end, hand){
     for(let i = 0; i < hand.length; i++){
         if(hand[i].canPlay(left_end, right_end)){
             return true;
@@ -57,7 +57,7 @@ function canPlayDomino(left_end, right_end, hand){
     return false;
 }
 
-function getHandScore(hand){
+export function getHandScore(hand){
     let score = 0;
 
     for(let i = 0; i < hand.length; i++){

@@ -1,5 +1,5 @@
-import { INVALID_MOVE } from 'boardgame.io/core';
-import {getHandScore, canPlayDomino, shuffle, DominoTile} from '../src/domino_helper'
+// import { INVALID_MOVE } from 'boardgame.io/core.js';
+import {getHandScore, canPlayDomino, shuffle, DominoTile} from '../src/domino_helper.js'
 
 
 export const DominoGame = {

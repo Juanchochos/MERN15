@@ -1,11 +1,11 @@
-const token = require("./src/createJWT.js");
-const User = require("./models/user.js");
-const Card = require("./models/card.js");
+const token = require("./src/createJWT.cjs");
+const User = require("./models/user.cjs");
+const Card = require("./models/card.cjs");
 const md5 = require("md5")
 
-exports.setApp = function (app, client) {
+exports.setApp = function (server, client) {
     
-  app.post('/api/login', async (req, res) => {
+  server.router.post('/api/login', async (req, res) => {
     var error = '';
     const { login, password } = req.body;
     const hash  = md5(password);
@@ -27,7 +27,7 @@ exports.setApp = function (app, client) {
     res.status(200).json(ret);
   });
 
-  app.post('/api/register', async (req, res) => {
+  server.router.post('/api/register', async (req, res) => {
     const { login, password, firstName, lastName, email} = req.body;
     var error = '';
     var ret;
@@ -64,7 +64,7 @@ exports.setApp = function (app, client) {
     }
   });
 
-  app.post('/api/addcard', async (req, res) => {
+  server.router.post('/api/addcard', async (req, res) => {
     const { userId, card, jwtToken } = req.body;
 
     if (token.isExpired(jwtToken)) { 
@@ -83,7 +83,7 @@ exports.setApp = function (app, client) {
     res.status(200).json({ error, jwtToken: refreshedToken });
   });
 
-  app.post('/api/searchcards', async (req, res) => {
+  server.router.post('/api/searchcards', async (req, res) => {
     const { userId, search, jwtToken } = req.body;
 
     if (token.isExpired(jwtToken)) { 
