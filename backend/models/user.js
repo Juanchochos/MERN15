@@ -6,7 +6,8 @@ const UserSchema = new mongoose.Schema({
   password: { type: String, required: true },
   stats: {
     gamesPlayed: { type: Number, default: 0 },
-    wins: { type: Number, default: 0 }
+    wins: { type: Number, default: 0 },
+    currency: { type: Number, default: 0 }
   }
 });
 
