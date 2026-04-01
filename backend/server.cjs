@@ -1,6 +1,7 @@
 require('dotenv').config();
 const { Server } = require('boardgame.io/server');
 const { DominoGame } = require('./games/domino.js');
+const bodyParser = require('koa-bodyparser');
 
 const mongoose = require("mongoose");
 // app.use(bodyParser.json());
@@ -16,23 +17,24 @@ mongoose.connect(url)
   .catch(err => console.log(err));
 
 var api = require('./api.cjs');
-api.setApp(server, mongoose );
 
-server.app.use((req, res, next) => 
+server.app.use(bodyParser())
+server.app.use( async (ctx, next) => 
 {
-  app.get("/api/ping", (req, res, next) => {
-	res.status(200).json({ message: "Hello World" });
-  });
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader(
+  ctx.set('Access-Control-Allow-Origin', '*');
+  ctx.set(
     'Access-Control-Allow-Headers',
     'Origin, X-Requested-With, Content-Type, Accept, Authorization'
   );
-  res.setHeader(
+  ctx.set(
     'Access-Control-Allow-Methods',
     'GET, POST, PATCH, DELETE, OPTIONS'
   );
-  next();
+  await next();
 });
+
+api.setApp(server, mongoose );
+
+
 
 server.run(5000, () => console.log('Server on :5000'));

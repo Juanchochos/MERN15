@@ -1,100 +1,138 @@
 const token = require("./src/createJWT.cjs");
 const User = require("./models/user.cjs");
 const Card = require("./models/card.cjs");
-const md5 = require("md5")
+const md5 = require("md5");
+
 
 exports.setApp = function (server, client) {
-    
-  server.router.post('/api/login', async (req, res) => {
-    var error = '';
-    const { login, password } = req.body;
-    const hash  = md5(password);
-    const results = await User.find({ Login: login, Password: hash});
-    var id = -1; var fn = ''; var ln = '';
-    var ret;
+
+
+  server.router.get('/api/ping', async (ctx) => {
+    ctx.status = 200;
+    ctx.body = { message: 'Hello World' };
+  });
+
+  server.router.post('/api/login', async (ctx) => {
+    const { login, password } = ctx.request.body;
+    const hash = md5(password);
+
+    let ret;
+
+    const results = await User.find({ Login: login, Password: hash });
+
     if (results.length > 0) {
-      id = results[0].UserId;
-      fn = results[0].FirstName;
-      ln = results[0].LastName;
+      const user = results[0];
+
       try {
-        ret = token.createToken(fn, ln, id);
-      } catch(e) {
+        ret = token.createToken(user.FirstName, user.LastName, user.UserId);
+      } catch (e) {
         ret = { error: e.message };
       }
     } else {
       ret = { error: "Login/Password incorrect" };
     }
-    res.status(200).json(ret);
+
+    ctx.status = 200;
+    ctx.body = ret;
   });
 
-  server.router.post('/api/register', async (req, res) => {
-    const { login, password, firstName, lastName, email} = req.body;
-    var error = '';
-    var ret;
-    try{
-      const existing = await User.findOne({Login: login});
-      console.log("Exising: " + existing);
-      if(existing != null){
-        return res.status(409).json({error: "User Already Exists"});
-      }
-      const hash  = md5(password);
-      const newUser = new User({ 
-          Login: login,
-          Password: hash,
-          FirstName: firstName,
-          LastName: lastName,
-          Email: email
-      });
-      const saved = await newUser.save();
-      ret = token.createToken(saved.FirstName, saved.LastName, saved.UserId);
-      res.status(201).json(ret);
-    }
-    catch (e) {
-        console.error("Register error:", e);
+  server.router.post('/api/register', async (ctx) => {
+    const { login, password, firstName, lastName, email } = ctx.request.body;
 
-        if (e.name === 'ValidationError') {
-            return res.status(400).json({ error: e.message });
-        }
-
-        if (e.code === 11000) { 
-            return res.status(409).json({ error: 'Duplicate field value' });
-        }
-
-        return res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-
-  server.router.post('/api/addcard', async (req, res) => {
-    const { userId, card, jwtToken } = req.body;
-
-    if (token.isExpired(jwtToken)) { 
-      return res.status(200).json({ error: 'The JWT is no longer valid', jwtToken: '' });
-    }
-
-    const newCard = new Card({ Card: card, UserId: userId });
-    var error = '';
     try {
-      await newCard.save(); 
-    } catch(e) {
+      const existing = await User.findOne({ Login: login });
+
+      if (existing) {
+        ctx.status = 409;
+        ctx.body = { error: "User Already Exists" };
+        return;
+      }
+
+      const hash = md5(password);
+
+      const newUser = new User({
+        Login: login,
+        Password: hash,
+        FirstName: firstName,
+        LastName: lastName,
+        Email: email
+      });
+
+      const saved = await newUser.save();
+
+      const ret = token.createToken(
+        saved.FirstName,
+        saved.LastName,
+        saved.UserId
+      );
+
+      ctx.status = 201;
+      ctx.body = ret;
+
+    } catch (e) {
+      console.error("Register error:", e);
+
+      if (e.name === 'ValidationError') {
+        ctx.status = 400;
+        ctx.body = { error: e.message };
+        return;
+      }
+
+      if (e.code === 11000) {
+        ctx.status = 409;
+        ctx.body = { error: 'Duplicate field value' };
+        return;
+      }
+
+      ctx.status = 500;
+      ctx.body = { error: 'Internal server error' };
+    }
+  });
+
+  server.router.post('/api/addcard', async (ctx) => {
+    const { userId, card, jwtToken } = ctx.request.body;
+
+    if (token.isExpired(jwtToken)) {
+      ctx.status = 200;
+      ctx.body = { error: 'The JWT is no longer valid', jwtToken: '' };
+      return;
+    }
+
+    let error = '';
+
+    try {
+      const newCard = new Card({ Card: card, UserId: userId });
+      await newCard.save();
+    } catch (e) {
       error = e.toString();
     }
 
     const refreshedToken = token.refresh(jwtToken);
-    res.status(200).json({ error, jwtToken: refreshedToken });
+
+    ctx.status = 201;
+    ctx.body = { error, jwtToken: refreshedToken };
   });
 
-  server.router.post('/api/searchcards', async (req, res) => {
-    const { userId, search, jwtToken } = req.body;
+  server.router.post('/api/searchcards', async (ctx) => {
+    const { userId, search, jwtToken } = ctx.request.body;
 
-    if (token.isExpired(jwtToken)) { 
-      return res.status(200).json({ error: 'The JWT is no longer valid', jwtToken: '' });
+    if (token.isExpired(jwtToken)) {
+      ctx.status = 200;
+      ctx.body = { error: 'The JWT is no longer valid', jwtToken: '' };
+      return;
     }
 
-    var _search = search.trim();
-    const results = await Card.find({ "Card": { $regex: _search + '.*', $options: 'i' } });
-    var _ret = results.map(r => r.Card);
+    const _search = search.trim();
+
+    const results = await Card.find({
+      Card: { $regex: _search + '.*', $options: 'i' }
+    });
+
+    const _ret = results.map(r => r.Card);
 
     const refreshedToken = token.refresh(jwtToken);
-    res.status(200).json({ results: _ret, error: '', jwtToken: refreshedToken });
+
+    ctx.status = 200;
+    ctx.body = { results: _ret, error: '', jwtToken: refreshedToken };
   });
-}
+};
