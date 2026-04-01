@@ -19,7 +19,7 @@ mongoose.connect(url)
 var api = require('./api.js');
 api.setApp(app, mongoose );
 
-app.use((req, res, next) => 
+app.use((req, res, next) =>
 {
   app.get("/api/ping", (req, res, next) => {
 	res.status(200).json({ message: "Hello World" });
@@ -36,4 +36,4 @@ app.use((req, res, next) =>
   next();
 });
 
-app.listen(5000); // start Node + Express server on port 5000
+app.listen(5001); // start Node + Express server on port 5000
