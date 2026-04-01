@@ -4,7 +4,7 @@ const Card = require("./models/card.js");
 const md5 = require("md5")
 
 exports.setApp = function (app, client) {
-    
+
   app.post('/api/login', async (req, res) => {
     var error = '';
     const { login, password } = req.body;
@@ -38,15 +38,16 @@ exports.setApp = function (app, client) {
         return res.status(409).json({error: "User Already Exists"});
       }
       const hash  = md5(password);
-      const newUser = new User({ 
-          Login: login,
-          Password: hash,
-          FirstName: firstName,
-          LastName: lastName,
-          Email: email
+      const newUser = new User({
+          login: login,
+          password: hash,
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          password: hash
       });
       const saved = await newUser.save();
-      ret = token.createToken(saved.FirstName, saved.LastName, saved.UserId);
+      ret = token.createToken(saved.firstName, saved.lastName, saved._id);
       res.status(201).json(ret);
     }
     catch (e) {
@@ -56,7 +57,7 @@ exports.setApp = function (app, client) {
             return res.status(400).json({ error: e.message });
         }
 
-        if (e.code === 11000) { 
+        if (e.code === 11000) {
             return res.status(409).json({ error: 'Duplicate field value' });
         }
 
@@ -67,14 +68,14 @@ exports.setApp = function (app, client) {
   app.post('/api/addcard', async (req, res) => {
     const { userId, card, jwtToken } = req.body;
 
-    if (token.isExpired(jwtToken)) { 
+    if (token.isExpired(jwtToken)) {
       return res.status(200).json({ error: 'The JWT is no longer valid', jwtToken: '' });
     }
 
     const newCard = new Card({ Card: card, UserId: userId });
     var error = '';
     try {
-      await newCard.save(); 
+      await newCard.save();
     } catch(e) {
       error = e.toString();
     }
@@ -86,7 +87,7 @@ exports.setApp = function (app, client) {
   app.post('/api/searchcards', async (req, res) => {
     const { userId, search, jwtToken } = req.body;
 
-    if (token.isExpired(jwtToken)) { 
+    if (token.isExpired(jwtToken)) {
       return res.status(200).json({ error: 'The JWT is no longer valid', jwtToken: '' });
     }
 
