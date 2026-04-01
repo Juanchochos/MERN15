@@ -1,4 +1,4 @@
-const token = require("./createJWT.js");
+const token = require("./src/createJWT.js");
 const User = require("./models/user.js");
 const Card = require("./models/card.js");
 const md5 = require("md5")
