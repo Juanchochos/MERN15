@@ -10,6 +10,13 @@ const UserSchema = new mongoose.Schema({
     gamesPlayed: { type: Number, default: 0 },
     wins: { type: Number, default: 0 },
     currency: { type: Number, default: 0 }
+  },
+  inventory: {
+    themes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Theme' }]
+  },
+  settings: {
+    activeDominoTheme: { type: mongoose.Schema.Types.ObjectId, ref: 'Theme' },
+    activeTableTheme: { type: mongoose.Schema.Types.ObjectId, ref: 'Theme' }
   }
 });
 
