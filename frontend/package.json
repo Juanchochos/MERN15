@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "boardgame.io": "^0.50.2",
     "dotenv": "^17.3.1",
     "jsonwebtoken": "^9.0.3",
     "jwt-decode": "^4.0.0",
