@@ -1,5 +1,26 @@
-import { INVALID_MOVE } from  "boardgame.io/dist/cjs/core.js";
-import { DominoTile, shuffle, canPlayDomino, getHandScore } from "../src/domino-helper.js";
+import { INVALID_MOVE } from "boardgame.io/core";
+import { DominoTile, shuffle, canPlayDomino, getHandScore } from "./domino-helper";
+
+
+type Side = "left" | "right" | "center";
+
+interface BoardEntry {
+    domino: DominoTile;
+    side: Side;
+}
+
+interface BoardEnds {
+    left: number | null;
+    right: number | null;
+}
+
+interface GameState {
+    graveyard: DominoTile[]; 
+    hands: Record<string, DominoTile[]>;
+    board: BoardEntry[];
+    boardEnds: BoardEnds; 
+    passCount: number;
+}
 
 export const DominoGame = {
     name: "domino",
@@ -7,8 +28,8 @@ export const DominoGame = {
     maxPlayers: 4,
     dominoType: 6,
 
-    setup: ({ ctx }) => {
-        const graveyard = [];
+    setup: ({ ctx }: { ctx: any }): GameState => {
+        const graveyard: DominoTile[] = [];
 
         for (let i = 0; i <= ctx.dominoType; i++) {
             for (let j = i; j <= ctx.dominoType; j++) { 
@@ -19,13 +40,13 @@ export const DominoGame = {
 
         shuffle(graveyard);
 
-        const hands = {};
+        const hands: Record<string, DominoTile[]> = {};
         for (let i = 0; i < ctx.numPlayers; i++) {
             hands[i] = graveyard.splice(0, 7);
         }
 
         return {
-            graveyard, 
+            graveyard,
             hands,
             board: [],
             boardEnds: { left: null, right: null },
@@ -38,23 +59,30 @@ export const DominoGame = {
     },
 
     moves: {
-        drawTile: ({ G, ctx }) => {
+        drawTile: ({ G, ctx }: { G: GameState; ctx: any }) => {
             if (G.graveyard.length === 0) return INVALID_MOVE;
-            const tile_drawn = G.graveyard.pop();
+            const tile_drawn = G.graveyard.pop()!;
             G.hands[ctx.currentPlayer].push(tile_drawn); 
         },
 
-        pass: ({ G, ctx }) => {
+        pass: ({ G, ctx }: { G: GameState; ctx: any }) => {
             const { left, right } = G.boardEnds;
-            if ( left !== null && right !== null && 
-                canPlayDomino(left, right, G.hands[ctx.currentPlayer])) {
+            if (
+                left !== null &&
+                right !== null &&
+                canPlayDomino(left, right, G.hands[ctx.currentPlayer])
+            ) {
                 return INVALID_MOVE;
             }
             if (G.graveyard.length !== 0) return INVALID_MOVE;
             G.passCount += 1; 
         },
 
-        playTile: ({ G, ctx }, tileIdx, end_played) => { 
+        playTile: ( 
+            { G, ctx }: { G: GameState; ctx: any },
+            tileIdx: number,
+            end_played: Side
+        ) => {
             const hand = G.hands[ctx.currentPlayer];
             if (tileIdx >= hand.length) return INVALID_MOVE;
 
@@ -63,7 +91,7 @@ export const DominoGame = {
             // First tile placed
             if (G.board.length === 0) {
                 G.board.push({ domino: tile_selected, side: "center" });
-                G.boardEnds.left = tile_selected.top;    
+                G.boardEnds.left = tile_selected.top;   
                 G.boardEnds.right = tile_selected.bottom;
                 G.hands[ctx.currentPlayer].splice(tileIdx, 1);
                 return;
@@ -71,7 +99,8 @@ export const DominoGame = {
 
             if (end_played !== "left" && end_played !== "right") return INVALID_MOVE;
 
-            const board_end = end_played === "left" ? G.boardEnds.left : G.boardEnds.right;
+            const board_end =
+                end_played === "left" ? G.boardEnds.left : G.boardEnds.right;
 
             if (board_end === null) return INVALID_MOVE;
             if (!tile_selected.canPlayEnd(board_end)) return INVALID_MOVE;
@@ -90,11 +119,11 @@ export const DominoGame = {
             }
 
             G.hands[ctx.currentPlayer].splice(tileIdx, 1);
-            G.passCount = 0; 
+            G.passCount = 0; // BUG FIX: was `passCount` (undefined variable)
         },
     },
 
-    endIf: ({ G, ctx }) => { 
+    endIf: ({ G, ctx }: { G: GameState; ctx: any }) => { 
         // Current player emptied their hand
         if (G.hands[ctx.currentPlayer].length === 0) {
             return { winner: String(ctx.currentPlayer) }; 

@@ -2,17 +2,19 @@ const token = require("./src/createJWT.cjs");
 const User = require("./models/user.cjs");
 const Card = require("./models/card.cjs");
 const md5 = require("md5");
+const bodyParser = require('koa-bodyparser');
 
+const bp = bodyParser();
 
 exports.setApp = function (server, client) {
 
-
+  
   server.router.get('/api/ping', async (ctx) => {
     ctx.status = 200;
     ctx.body = { message: 'Hello World' };
   });
 
-  server.router.post('/api/login', async (ctx) => {
+  server.router.post('/api/login', bp, async (ctx) => {
     const { login, password } = ctx.request.body;
     const hash = md5(password);
 
@@ -135,4 +137,7 @@ exports.setApp = function (server, client) {
     ctx.status = 200;
     ctx.body = { results: _ret, error: '', jwtToken: refreshedToken };
   });
+
+  server.app.use(server.router.routes());
+  server.app.use(server.router.allowedMethods());
 };

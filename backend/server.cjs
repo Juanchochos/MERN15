@@ -1,13 +1,11 @@
 require('dotenv').config();
 const { Server } = require('boardgame.io/server');
 const { DominoGame } = require('./games/domino.js');
-const bodyParser = require('koa-bodyparser');
 
 const mongoose = require("mongoose");
-// app.use(bodyParser.json());
 const server = Server({
   games: [DominoGame],
-  origins: ['http://localhost:5173', 'http://rickymetral.xyz'] // Vite's default port
+  origins: ['http://localhost:5173', 'http://rickymetral.xyz'] 
 })
 
 
@@ -18,7 +16,6 @@ mongoose.connect(url)
 
 var api = require('./api.cjs');
 
-server.app.use(bodyParser())
 server.app.use( async (ctx, next) => 
 {
   ctx.set('Access-Control-Allow-Origin', '*');

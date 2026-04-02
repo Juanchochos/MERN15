@@ -15,18 +15,18 @@ export class DominoTile {
 
     flip(){
         var temp = this.bottom;
-        this.top = this.bottom;
+        this.bottom = this.top;
         this.top = temp;
     }
 
     canPlay(left_end, right_end){
-        if(left_end === this.top || left_end === this.bottom
-            || right_end === this.top || left_end === this.bottom){
-                return true;
-            }
-        return false;
+        return (
+            left_end === this.top || 
+            left_end === this.bottom || 
+            right_end === this.top || 
+            right_end === this.bottom
+        );
     }
-
 
     canPlayEnd(end_value){
         if(this.top === end_value || this.bottom == end_value){
@@ -35,7 +35,6 @@ export class DominoTile {
         return false;
     }
 }
-
 
 //Shuffles the graveyard
 export function shuffle(array) {
