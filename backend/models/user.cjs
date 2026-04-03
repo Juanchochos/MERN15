@@ -1,29 +1,23 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
-//Create Schema
-const UserSchema = new Schema({
-  UserId: {
-    type: Number
+const mongoose = require('mongoose');
+
+const UserSchema = new mongoose.Schema({
+  login: { type: String, required: true, unique: true },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  stats: {
+    gamesPlayed: { type: Number, default: 0 },
+    wins: { type: Number, default: 0 },
+    currency: { type: Number, default: 0 }
   },
-  FirstName: {
-    type: String,
-    required: true
+  inventory: {
+    themes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Theme' }]
   },
-  LastName: {
-    type: String,
-    required: true
-  },
-  Login: {
-    type: String,
-    required: true
-  },
-  Password: {
-    type: String,
-    required: true
-  },
-  Email: {
-    type: String,
-    required: true
+  settings: {
+    activeDominoTheme: { type: mongoose.Schema.Types.ObjectId, ref: 'Theme' },
+    activeTableTheme: { type: mongoose.Schema.Types.ObjectId, ref: 'Theme' }
   }
 });
-module.exports = user = mongoose.model("Users", UserSchema);
+
+module.exports = mongoose.model('User', UserSchema);
