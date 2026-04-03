@@ -18,13 +18,13 @@ exports.setApp = function (server, client) {
 
     let ret;
 
-    const results = await User.find({ Login: login, Password: hash });
+    const results = await User.find({ login: login, password: hash });
 
     if (results.length > 0) {
       const user = results[0];
 
       try {
-        ret = token.createToken(user.FirstName, user.LastName, user.UserId);
+        ret = token.createToken(user.firstName, user.lastName, user._id);
       } catch (e) {
         ret = { error: e.message };
       }
@@ -40,7 +40,7 @@ exports.setApp = function (server, client) {
     const { login, password, firstName, lastName, email } = ctx.request.body;
 
     try {
-      const existing = await User.findOne({ Login: login });
+      const existing = await User.findOne({ login: login });
 
       if (existing) {
         ctx.status = 409;
