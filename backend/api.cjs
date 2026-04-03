@@ -2,19 +2,17 @@ const token = require("./src/createJWT.cjs");
 const User = require("./models/user.cjs");
 const Card = require("./models/card.cjs");
 const md5 = require("md5");
-const bodyParser = require('koa-bodyparser');
+const { koaBody } = require("koa-body");
 
-const bp = bodyParser();
 
 exports.setApp = function (server, client) {
 
-  
   server.router.get('/api/ping', async (ctx) => {
     ctx.status = 200;
     ctx.body = { message: 'Hello World' };
   });
 
-  server.router.post('/api/login', bp, async (ctx) => {
+  server.router.post('/api/login', koaBody(), async (ctx) => {
     const { login, password } = ctx.request.body;
     const hash = md5(password);
 
@@ -38,7 +36,7 @@ exports.setApp = function (server, client) {
     ctx.body = ret;
   });
 
-  server.router.post('/api/register', async (ctx) => {
+  server.router.post('/api/register', koaBody(), async (ctx) => {
     const { login, password, firstName, lastName, email } = ctx.request.body;
 
     try {
@@ -52,21 +50,18 @@ exports.setApp = function (server, client) {
 
       const hash = md5(password);
 
-      const newUser = new User({
-        Login: login,
-        Password: hash,
-        FirstName: firstName,
-        LastName: lastName,
-        Email: email
+       const newUser = new User({
+        login: login,
+        password: hash,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        password: hash 
       });
 
       const saved = await newUser.save();
 
-      const ret = token.createToken(
-        saved.FirstName,
-        saved.LastName,
-        saved.UserId
-      );
+      ret = token.createToken(saved.firstName, saved.lastName, saved._id);
 
       ctx.status = 201;
       ctx.body = ret;
@@ -91,7 +86,7 @@ exports.setApp = function (server, client) {
     }
   });
 
-  server.router.post('/api/addcard', async (ctx) => {
+  server.router.post('/api/addcard', koaBody(), async (ctx) => {
     const { userId, card, jwtToken } = ctx.request.body;
 
     if (token.isExpired(jwtToken)) {
@@ -115,7 +110,7 @@ exports.setApp = function (server, client) {
     ctx.body = { error, jwtToken: refreshedToken };
   });
 
-  server.router.post('/api/searchcards', async (ctx) => {
+  server.router.post('/api/searchcards', koaBody(), async (ctx) => {
     const { userId, search, jwtToken } = ctx.request.body;
 
     if (token.isExpired(jwtToken)) {
