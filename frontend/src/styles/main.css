@@ -134,12 +134,14 @@ header {
 	margin-bottom: 10%;
 	width:100%;
 	max-width: 100%;
-	height: 140px;
+	height: 150px;
 	font-family: "Exo", sans-serif;
 	/*border: 5px solid green;*/
 	@media (max-width: 1024px) {
 	height: 120px;
 	margin-bottom: 20%;
+	position: relative;
+	z-index: 1000;
 	}
 }
 .containerHeader {
@@ -164,12 +166,41 @@ header {
   }
 }
 
+#headerTitle
+{
+	font-family: "Exo", sans-serif !important;
+	font-weight: 200;
+    font-size: clamp(3rem, 6vw, 3rem);
+	width: 20%;
+	text-align: left;
+    color: var(--text);
+	/*border: 3px solid white;*/
+	@media (max-width: 1024px) {
+    font-size: clamp(3rem, 6vw, 3rem);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40%;
+  }
+}
+
 .titleWrapper {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 15px;
+	gap: 10px;
 	width: 90%;
+	margin-top: 20px;
+	/*border: 2px solid blue;*/
+	/*border: 2px solid blue;*/
+}
+
+.HeaderWrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	width: 100%;
 	margin-top: 20px;
 	/*border: 2px solid blue;*/
 	/*border: 2px solid blue;*/
@@ -186,6 +217,145 @@ header {
 	z-index: 2;
 }
 
+#dominoIconSmall {
+	width: 1.5vw;
+	max-width: 80px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	@media (max-width: 1024px) {
+	width: 6vw;
+  }
+	height: auto;
+	transform: rotate(45deg);
+	z-index: 2;
+}
+
+#titleHeader {
+	justify-content: left;
+	margin-right: 50px;
+	gap: 30px;
+}
+
+#titleHeaderMobile {
+	display: none;
+}
+
+.headerUI {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 15%;
+	gap: 10px;
+	margin-top: 10px;
+	@media (max-width: 1024px) {
+		display: none;
+	}
+}
+
+.headerUIMobile {
+	display: none;
+
+}
+
+#menuButton {
+	display: none;
+}
+
+.menu {
+	display: flex;
+	align-items: left;
+}
+
+@media (max-width: 1024px) {
+
+  .menuButton {
+    display: block; 
+    background: none;
+    border: none;
+    font-size: 40px;
+    color: var(--text);
+    cursor: pointer;
+	margin-right: auto;
+  }
+
+  .mobileMenu {
+    position: absolute;
+    top: 100%;
+	right: 10%;
+    background: black;
+    padding-top: 15px;
+	padding-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 80%;
+    z-index: 999;
+	border: 2px solid var(--text);
+  }
+
+  .mobileMenu a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 20px;
+  }
+
+  .mobileMenu a:hover {
+    color: #39c922;
+  }
+  
+    .HeaderWrapper {
+    display: flex;
+    justify-content: center; /* move everything to the left */
+    align-items: center;
+    position: relative; /* needed for dropdown positioning */
+    padding-left: 10px;
+  }
+  
+  #titleHeaderMobile {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-right: 10%;
+	gap: 60px;
+	z-index:1;
+	}
+	
+	.headerUIMobile {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+	}
+}
+
+#IconMobile {
+	width: 10vw;
+}
+
+#helpLink {
+}
+
+#scoreLink {
+	margin-right: 30px;
+}
+
+#settingsLink {
+	margin-right: 40px;
+}
+
+#exitLink {
+}
+
+#Icon {
+	width: 2vw;
+}
+
+#link {
+	font-size: 40px;
+    color: var(--text);
+	text-decoration: none;
+}
 #loginDiv
 {
 	display: flex;
@@ -198,6 +368,7 @@ header {
     font-size: 25px;
 	font-weight: 300;
 	color: black;
+	z-index: 1;
 	
 	height: 100%;
 	
@@ -253,6 +424,13 @@ header {
 	font-family: "Exo", sans-serif;
 }
 
+#createButton {
+	padding: 10px;
+	width: 70%;
+	margin-top: 15px;
+	margin-bottom: 20px;
+	font-weight: 300;
+}
 #registerButton {
     width: 30%;
     margin-left: 10%;

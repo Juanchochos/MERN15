@@ -73,16 +73,16 @@ function Login() {
 
   return (
     <div id="loginDiv">
-      <span id="inner-title">log In</span><br />
+      <span id="inner-title">Sign Up</span><br />
 	  <div id="signUpMessage">
-		<p id="signup">Don't have an account?</p>
-		<Link to="/signup">Sign Up</Link>
+		<p id="signup">Already have an account?</p>
+		<Link to="/create">Create</Link>
 	  </div>
       <input type="text" id="loginName" placeholder="Username"
         onChange={handleSetLoginName} /><br />
       <input type="password" id="loginPassword" placeholder="Password"
         onChange={handleSetPassword} />
-      <input type="submit" id="loginButton" className="buttons" value="Sign In"
+      <input type="submit" id="loginButton" className="buttons" value="Sign Up"
         onClick={doLogin} />
       <span id="loginResult">{message}</span>
     </div>

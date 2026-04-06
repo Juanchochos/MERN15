@@ -73,16 +73,12 @@ function Login() {
 
   return (
     <div id="loginDiv">
-      <span id="inner-title">log In</span><br />
-	  <div id="signUpMessage">
-		<p id="signup">Don't have an account?</p>
-		<Link to="/signup">Sign Up</Link>
-	  </div>
-      <input type="text" id="loginName" placeholder="Username"
-        onChange={handleSetLoginName} /><br />
-      <input type="password" id="loginPassword" placeholder="Password"
-        onChange={handleSetPassword} />
-      <input type="submit" id="loginButton" className="buttons" value="Sign In"
+      <span id="inner-title">Options</span><br />
+      <input type="submit" id="createButton" className="buttons" value="Create Game"
+        onClick={doLogin} />
+      <input type="submit" id="createButton" className="buttons" value="Join Game"
+        onClick={doLogin} />
+      <input type="submit" id="createButton" className="buttons" value="Shop"
         onClick={doLogin} />
       <span id="loginResult">{message}</span>
     </div>
