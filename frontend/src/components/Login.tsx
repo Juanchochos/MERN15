@@ -98,7 +98,7 @@ function Login() {
 
       setRequiresVerification(true);
       setVerificationCode('');
-      setMessage(typeof res.message === 'string' ? res.message : 'We emailed you a verification code.');
+      setMessage('');
     }
     catch (error: any) {
       alert(error.toString());
@@ -177,10 +177,12 @@ function Login() {
   return (
     <div id="loginDiv">
       <span id="inner-title">Log In</span><br />
-	  <div id="signUpMessage">
-		<p id="signup">Don't have an account?</p>
-		<Link to="/signup">Sign Up</Link>
-	  </div>
+      {!requiresVerification && (
+	    <div id="signUpMessage">
+		  <p id="signup">Don't have an account?</p>
+		  <Link to="/signup">Sign Up</Link>
+	    </div>
+      )}
       {!requiresVerification && (
         <>
           <input type="text" id="loginName" placeholder="Username"
@@ -196,16 +198,18 @@ function Login() {
       )}
       {requiresVerification && (
         <>
-          <p id="signup">Enter the 6-digit code we emailed to you.</p>
+          <p id="verificationPrompt">Enter the 6-digit code we emailed to you.</p>
           <input type="text" id="verificationCode" placeholder="Verification Code"
             value={verificationCode}
             onChange={handleSetVerificationCode} />
-          <input type="submit" id="loginButton" className="buttons" value={isSubmitting ? "Verifying..." : "Verify Code"}
-            onClick={doVerifyCode}
-            disabled={isSubmitting} />
-          <input type="button" id="registerButton" className="buttons2" value="Back"
-            onClick={handleBackToLogin}
-            disabled={isSubmitting} />
+          <div id="verificationActions">
+            <input type="submit" id="verifyButton" className="buttons" value={isSubmitting ? "Verifying..." : "Verify Code"}
+              onClick={doVerifyCode}
+              disabled={isSubmitting} />
+            <input type="button" id="backButton" className="buttons" value="Back"
+              onClick={handleBackToLogin}
+              disabled={isSubmitting} />
+          </div>
         </>
       )}
       <span id="loginResult">{message}</span>

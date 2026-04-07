@@ -406,6 +406,7 @@ header {
 		width: 60%;
 	}
     font-family: "Exo", sans-serif;
+	cursor: pointer;
 }
 
 .buttons2
@@ -424,6 +425,13 @@ header {
 	font-family: "Exo", sans-serif;
 }
 
+.buttons:disabled,
+.buttons2:disabled
+{
+	cursor: default;
+	opacity: 0.7;
+}
+
 #createButton {
 	padding: 10px;
 	width: 70%;
@@ -434,6 +442,45 @@ header {
 #registerButton {
     width: 30%;
     margin-left: 10%;
+}
+
+#verificationPrompt
+{
+	margin: 0;
+	text-align: center;
+}
+
+#verificationActions
+{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 16px;
+	width: 100%;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	@media (max-width: 1024px) {
+		flex-direction: column;
+	}
+}
+
+#verifyButton,
+#backButton
+{
+	margin: 0;
+	width: 38%;
+}
+
+#backButton
+{
+	background-color: #403126;
+}
+
+#backButton:hover
+{
+	background-color: #2f231b;
+	color: #FFFFFF;
+	opacity: 1;
 }
 
 .buttons:hover{
