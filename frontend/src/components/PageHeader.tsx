@@ -17,15 +17,15 @@ function PageHeader() {
 					</div>
 				<div id = "scoreLink" className="headerUI">
 					 <img src="/img/starIcon.png" id="Icon" alt="Domino Icon"></img>
-					 <Link to="/" id="link">Score</Link>	
+					 <Link to="/Lobby" id="link">Score</Link>	
 					</div>	
 				<div id = "settingsLink" className="headerUI">
 					 <img src="/img/settingsIcon.png" id="Icon" alt="Domino Icon"></img>
-					 <Link to="/" id="link">Settings</Link>
+					 <Link to="/Join" id="link">Settings</Link>
 					</div>	
 				<div id = "exitLink" className="headerUI">
 					 <img src="/img/exitIcon.png" id="Icon" alt="Domino Icon"></img>
-					 <Link to="/" id="link">Logout</Link>
+					 <Link to="/Opponent" id="link">Logout</Link>
 					</div>
 				<div id = "menu" className="headerUIMobile">
 				    {/* RIGHT SIDE: Hamburger button (mobile only) */}

@@ -131,7 +131,7 @@ header {
 	background: black;
 	border-bottom: 4px solid #CFAC94;
 	text-align: center;
-	margin-bottom: 10%;
+	margin-bottom: 5%;
 	width:100%;
 	max-width: 100%;
 	height: 150px;
@@ -139,7 +139,6 @@ header {
 	/*border: 5px solid green;*/
 	@media (max-width: 1024px) {
 	height: 120px;
-	margin-bottom: 20%;
 	position: relative;
 	z-index: 1000;
 	}
@@ -356,6 +355,7 @@ header {
     color: var(--text);
 	text-decoration: none;
 }
+
 #loginDiv
 {
 	display: flex;
@@ -386,6 +386,116 @@ header {
 		width: 95%;
 		margin-left: 2.5%;
 	}
+}
+
+#lobbyDiv
+{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 10px;
+	margin-left: 35%;
+	width: 30%;
+    font-size: 25px;
+	font-weight: 300;
+	color: black;
+	z-index: 1;
+	
+	height: 100%;
+	
+	border-radius: 3px;
+	
+    background-image: url("/img/WoodGrain.jpg");
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-attachment: scroll;
+	
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); 
+	position: relative;
+	@media (max-width: 1024px) {
+		width: 95%;
+		margin-left: 2.5%;
+	}
+}
+
+.lobbyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 80%;
+}
+
+.lobbyContent {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.playerList ul {
+  list-style: none;
+  padding: 0;
+}
+
+.playerItem {
+  background: rgba(0,0,0,0.4);
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+}
+
+.hostTag {
+  color: #39c922;
+  font-weight: bold;
+}
+
+.startButton {
+  margin-top: 20px;
+  width: 100%;
+  padding: 15px;
+  font-size: 22px;
+  background: #259506;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+#orBox {
+	display: none; /* REMOVE IF YOU WANT 2v2 TO SHOW UP */
+	align-items: center;
+	justify-content: center;
+	background-color: #00000080;
+	border-radius: 5px;
+	width: 20%;
+	height: 50px;
+}
+
+#orH1 {
+	font-size: 30px;
+	font-weight: 400;
+	color: #F0DFD3;
+}
+
+#orBoxJoin {
+	display: flex; /* REMOVE IF YOU WANT 2v2 TO SHOW UP */
+	align-items: center;
+	justify-content: center;
+	background-color: #00000080;
+	border-radius: 5px;
+	width: 20%;
+	margin-bottom: 20px;
+	height: 50px;
+}
+
+#orH1Join {
+	font-size: 30px;
+	font-weight: 400;
+	color: #F0DFD3;
 }
 
 .buttons
@@ -424,6 +534,46 @@ header {
 	font-family: "Exo", sans-serif;
 }
 
+#opponentButton {
+	padding: 10px;
+	width: 70%;
+	margin-top: 15px;
+	margin-bottom: 60px;
+	font-weight: 300;
+	color: #F0DFD3;
+	background-color: #259506;
+}
+
+#opponent2Button {
+	display: none; /* REMOVE IF YOU WANT 2v2 TO SHOW UP */
+	padding: 10px;
+	width: 70%;
+	margin-top: 15px;
+	margin-bottom: 60px;
+	font-weight: 300;
+	color: var(--text);
+	background-color: #2E2722;
+}
+
+#roomButton {
+	padding: 10px;
+	width: 70%;
+	margin-top: 15px;
+	margin-bottom: 30px;
+	font-weight: 300;
+	color: #F0DFD3;
+	background-color: #259506;
+}
+
+#room2Button {
+	padding: 10px;
+	margin-left: 10px;
+	width: 30%;
+	font-weight: 300;
+	color: #F0DFD3;
+	background-color: #259506;
+}
+
 #createButton {
 	padding: 10px;
 	width: 70%;
@@ -436,6 +586,16 @@ header {
     margin-left: 10%;
 }
 
+#lobbyButton {
+	padding: 10px;
+	width: 100%;
+	margin-top: 15px;
+	margin-bottom: 30px;
+	font-weight: 300;
+	color: #F0DFD3;
+	background-color: #259506;
+}
+
 .buttons:hover{
     background-color: #0f9500c7;
     color: #FFFFFF;
@@ -446,6 +606,29 @@ header {
     background-color: #0f9500c7;
     color: #FFFFFF;
     opacity: 50%;
+}
+
+#roomCode {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 70%;
+	margin-bottom: 20px;
+}
+
+#roomName {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 0px;
+	background-color: transparent;
+	border-radius: 10px;
+	border: 1px solid black;
+	color: black;
+	font-family: "exo", sans-serif;
+	font-size: 20px;
+	padding: 15px;
+	width: 60%;
 }
 
 #loginName, #loginPassword {

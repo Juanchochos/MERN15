@@ -12,7 +12,7 @@ function SignUp() {
       <input type="text" id="loginName" placeholder="Username" /><br />
       <input type="password" id="loginPassword" placeholder="Password" />
       <input type="submit" id="loginButton" className="buttons" value="Sign Up" />
-      /* <span id="loginResult">{}</span> */
+	  {/* <span id="loginResult">{}</span> */}
     </div>
   );
 };
