@@ -13,10 +13,10 @@ async function seedUser() {
     const hashedPassword = await md5('password');
 
     await User.create({
-      login: 'james',
-      firstName: 'James',
-      lastName: 'Phillips',
-      email: 'james@gmail.com',
+      login: 'james2',
+      firstName: 'james',
+      lastName: 'phillips',
+      email: 'jennuphillips@googlemail.com',
       password: hashedPassword,
     });
 

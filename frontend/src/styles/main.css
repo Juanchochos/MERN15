@@ -448,7 +448,7 @@ header {
     opacity: 50%;
 }
 
-#loginName, #loginPassword {
+#loginName, #loginPassword, #verificationCode {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -467,7 +467,7 @@ header {
 		width: 80%;
 	}
 }
-#loginPassword
+#loginPassword, #verificationCode
 {
 	font-size: 30px;
 	@media (max-width: 1024px) {
