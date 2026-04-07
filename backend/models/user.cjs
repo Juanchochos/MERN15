@@ -17,7 +17,9 @@ const UserSchema = new mongoose.Schema({
   settings: {
     activeDominoTheme: { type: mongoose.Schema.Types.ObjectId, ref: 'Theme' },
     activeTableTheme: { type: mongoose.Schema.Types.ObjectId, ref: 'Theme' }
-  }
+  },
+  loginVerificationCodeHash: { type: String, default: null },
+  loginVerificationExpiresAt: { type: Date, default: null }
 });
 
 module.exports = mongoose.model('User', UserSchema);

@@ -3,9 +3,11 @@ const User = require("./models/user.cjs");
 const Card = require("./models/card.cjs");
 const md5 = require("md5");
 const { koaBody } = require("koa-body");
+const authEmail = require("./services/auth_email.cjs");
 
 
 exports.setApp = function (server, client) {
+  const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
 
   server.router.get('/api/ping', async (ctx) => {
     ctx.status = 200;
@@ -13,27 +15,88 @@ exports.setApp = function (server, client) {
   });
 
   server.router.post('/api/login', koaBody(), async (ctx) => {
-    const { login, password } = ctx.request.body;
-    const hash = md5(password);
+    try {
+      const { login, password } = ctx.request.body || {};
+      const hash = md5(password);
+      const user = await User.findOne({ login: login, password: hash });
 
-    let ret;
+      if (!user) {
+        ctx.status = 200;
+        ctx.body = { error: "Login/Password incorrect" };
+        return;
+      }
 
-    const results = await User.find({ login: login, password: hash });
-
-    if (results.length > 0) {
-      const user = results[0];
+      if (skipEmailVerification) {
+        ctx.status = 200;
+        ctx.body = token.createToken(user.firstName, user.lastName, user._id);
+        return;
+      }
 
       try {
-        ret = token.createToken(user.firstName, user.lastName, user._id);
-      } catch (e) {
-        ret = { error: e.message };
-      }
-    } else {
-      ret = { error: "Login/Password incorrect" };
-    }
+        const code = authEmail.generateVerificationCode();
+        const codeHash = md5(code);
 
-    ctx.status = 200;
-    ctx.body = ret;
+        user.loginVerificationCodeHash = codeHash;
+        user.loginVerificationExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+        await user.save();
+
+        await authEmail.sendEmail(user.email, code);
+
+        ctx.status = 200;
+        ctx.body = { message: "Verification code sent", requiresVerification: true };
+      } catch (e) {
+        ctx.status = 500;
+        ctx.body = { error: e.message };
+      }
+    } catch (e) {
+      console.error("api/login", e);
+      ctx.status = 503;
+      ctx.body = { error: "Database unavailable. Check MongoDB URI and credentials in .env." };
+    }
+  });
+
+  server.router.post('/api/verify-login', koaBody(), async (ctx) => {
+    try {
+      const { login, code } = ctx.request.body || {};
+      const user = await User.findOne({ login: login });
+
+      if (!user) {
+        ctx.status = 404;
+        ctx.body = { error: "User not found" };
+        return;
+      }
+
+      if (!user.loginVerificationCodeHash || !user.loginVerificationExpiresAt) {
+        ctx.status = 400;
+        ctx.body = { error: "No verification code requested" };
+        return;
+      }
+
+      if (user.loginVerificationExpiresAt < new Date()) {
+        user.loginVerificationCodeHash = null;
+        user.loginVerificationExpiresAt = null;
+        await user.save();
+        ctx.status = 400;
+        ctx.body = { error: "Verification code expired" };
+        return;
+      }
+
+      if (md5(code) === user.loginVerificationCodeHash) {
+        const ret = token.createToken(user.firstName, user.lastName, user._id);
+        user.loginVerificationCodeHash = null;
+        user.loginVerificationExpiresAt = null;
+        await user.save();
+        ctx.status = 200;
+        ctx.body = ret;
+      } else {
+        ctx.status = 400;
+        ctx.body = { error: "Invalid verification code" };
+      }
+    } catch (e) {
+      console.error("api/verify-login", e);
+      ctx.status = 503;
+      ctx.body = { error: "Database unavailable. Check MongoDB URI and credentials in .env." };
+    }
   });
 
   server.router.post('/api/register', koaBody(), async (ctx) => {
@@ -56,7 +119,7 @@ exports.setApp = function (server, client) {
         firstName: firstName,
         lastName: lastName,
         email: email,
-        password: hash 
+        password: hash
       });
 
       const saved = await newUser.save();
