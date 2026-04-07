@@ -3,9 +3,17 @@
 {/*setPlayers(prev => [...prev, newPlayer]); When someone joins react will re render list */}
 
 {/*<Lobby players={players} isHost={currentUser.id === hostId} /> Determines Host*/}
+type Player = {
+  name: string;
+  isHost: boolean;
+};
 
+type LobbyProps = {
+  players: Player[];
+  isHost: boolean;
+};
 
-function Lobby({players, isHost}) {
+function Lobby({players, isHost}: LobbyProps) {
   return (
   <div id="loginDiv">
 	<span id="inner-title">Match Lobby</span><br />
