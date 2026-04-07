@@ -1,5 +1,5 @@
 import PageHeader from '../components/PageHeader.tsx';
-import Opponent from '../components/opponent.tsx';
+import Opponent from '../components/Opponent.tsx';
 
 const OpponentPage = () =>
 {

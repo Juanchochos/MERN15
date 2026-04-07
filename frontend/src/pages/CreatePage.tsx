@@ -1,5 +1,5 @@
 import PageHeader from '../components/PageHeader.tsx';
-import Create from '../components/create.tsx';
+import Create from '../components/CreateGame.tsx';
 
 const CreatePage = () =>
 {
