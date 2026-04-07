@@ -21,3 +21,9 @@ flutter:
   assets:
     - assets/images/woodBG.jpg
     - assets/images/WoodGrain.jpg
+    - assets/images/domino.png
+    - assets/images/exitIcon.png
+    - assets/images/helpIcon.png
+    - assets/images/menuIcon.png
+    - assets/images/settingsIcon.png
+    - assets/images/starIcon.png

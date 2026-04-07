@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+const Color black = Color.fromARGB(255, 14, 7, 2);
+const Color white = Color.fromARGB(255, 240, 223, 211); 
+const Color beige = Color.fromARGB(255, 207, 172, 148);
+const Color green = Color.fromARGB(255, 37, 149, 6);
+
 void main() {
   runApp(const MyApp());
 }
@@ -13,7 +18,19 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Dominoes',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        colorScheme: ColorScheme.fromSeed(seedColor: black),
+        primaryColor: black,
+        scaffoldBackgroundColor: black,
+        textSelectionTheme: TextSelectionThemeData(
+          selectionColor: green.withValues(alpha: 0.5),
+          selectionHandleColor: green,
+        ),
+        primaryTextTheme: TextTheme(
+          headlineLarge: TextStyle(color: white, fontSize: 32, fontWeight: FontWeight.bold),
+          bodyMedium: TextStyle(color: white, fontSize: 16),
+          bodyLarge: TextStyle(color: white, fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        //colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
       ),
       home: const LoginPage(),
@@ -87,12 +104,30 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final ButtonStyle style = ElevatedButton.styleFrom(
       textStyle: const TextStyle(fontSize: 20),
-      backgroundColor: Colors.green,
+      backgroundColor: green,
       padding: const EdgeInsets.symmetric(vertical: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
     );
     return Scaffold(
       appBar: AppBar(
-        title: const Text('DOMINOES'),
+        centerTitle: true,
+        leading: 
+          IconButton(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context, 
+                MaterialPageRoute(
+                  builder: (context) => const LoginPage()
+                )
+              );
+              }, 
+            icon: Image.asset("assets/images/domino.png"),
+            ),
+        title: const Text('DOMINOES',
+        style: TextStyle(color: white)),
+        backgroundColor: black,
         ),
       body: Container(
         decoration: BoxDecoration(
@@ -108,10 +143,18 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
-                  'Login',
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+                Container(
+                  color: black,
+                  child: Text(
+                    'LOG IN',
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: white),
+                    textAlign: TextAlign.center,
+                  ),
+                ), 
+                const Divider(
+                  height: 5,
+                  thickness: 5,
+                  color: green,
                 ),
                 Container (
                   decoration: BoxDecoration(
@@ -119,13 +162,17 @@ class _LoginPageState extends State<LoginPage> {
                       image: AssetImage("assets/images/WoodGrain.jpg"),
                       fit: BoxFit.fill,
                     ),
-                  ),
+                  ),                  
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: 40),
-                      TextButton( // remove const to allow for navigation
+                      const SizedBox(height: 20),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child:TextButton( // remove const to allow for navigation
                         onPressed: () {
                           Navigator.pushReplacement(
                             context, 
@@ -133,7 +180,7 @@ class _LoginPageState extends State<LoginPage> {
                               builder: (context) => const SignupPage()
                               )
                               );
-                        }, // Replace with actual signup navigation
+                        },
                         child: 
                             Text.rich(
                               const TextSpan(
@@ -141,7 +188,7 @@ class _LoginPageState extends State<LoginPage> {
                                 children: [
                                   TextSpan(
                                     text: "Sign Up",
-                                    style: TextStyle(color: Colors.lightGreen, fontWeight: FontWeight.bold), 
+                                    style: TextStyle(color: green, fontWeight: FontWeight.bold), 
                                   ),
                               ],
                             ),
@@ -157,11 +204,17 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                           ),
                       ),
-                      const SizedBox(height: 40),
+                      ),
+                      
+                      const SizedBox(height:16),
                       TextField(
                         controller: _loginController,
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Username',
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.black),
+                          ),
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -171,6 +224,10 @@ class _LoginPageState extends State<LoginPage> {
                         obscureText: true,
                         decoration: const InputDecoration(
                           labelText: 'Password',
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.black),
+                          ),
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -180,7 +237,7 @@ class _LoginPageState extends State<LoginPage> {
                         style: style,
                         child: _isLoading
                             ? const CircularProgressIndicator()
-                            : const Text('Login', style: TextStyle(fontSize: 16)),
+                            : const Text('Login', style: TextStyle(fontSize: 16, color: white)),
                       ),
                       const SizedBox(height: 16),
                       if (_errorMessage.isNotEmpty)
@@ -189,8 +246,10 @@ class _LoginPageState extends State<LoginPage> {
                           style: const TextStyle(color: Colors.red, fontSize: 14),
                           textAlign: TextAlign.center,
                         ),
-                        ],)
+                      ],
                     ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -228,14 +287,14 @@ class _SignupPageState extends State<SignupPage> {
     });
     try {
       final response = await http.post(
-        Uri.parse('http://rickymetral.xyz:5000/api/signup'),
+        Uri.parse('http://rickymetral.xyz:5000/api/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'login': _loginController.text,
+          'password': _passwordController.text,
           'firstName': _firstNameController.text,
           'lastName': _lastNameController.text,
           'email': _emailController.text,
-          'password': _passwordController.text,
         }),
       );
       if (response.statusCode == 200) {
@@ -279,12 +338,14 @@ class _SignupPageState extends State<SignupPage> {
   Widget build(BuildContext context) {
     final ButtonStyle style = ElevatedButton.styleFrom(
       textStyle: const TextStyle(fontSize: 20),
-      backgroundColor: Colors.green,
+      backgroundColor: green,
       padding: const EdgeInsets.symmetric(vertical: 16),
     );
     return Scaffold(
       appBar: AppBar(
-        title: const Text('DOMINOES'),
+        title: const Text('DOMINOES',
+        style: TextStyle(color: white),
+        ),
         ),
         body: Container(
         decoration: BoxDecoration(

@@ -56,7 +56,6 @@ exports.setApp = function (server, client) {
         firstName: firstName,
         lastName: lastName,
         email: email,
-        password: hash 
       });
 
       const saved = await newUser.save();
