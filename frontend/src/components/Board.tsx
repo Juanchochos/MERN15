@@ -3,12 +3,12 @@ import DominoTile from './DominoTile';
 // import PlayerHand from './PlayerHand';
 
 function Board({ G, ctx, moves, playerID }: BoardProps) {
-  const myHand = G.hands[playerID!] ?? [];
+  // const myHand = G.hands[playerID!] ?? [];
   const isMyTurn = ctx.currentPlayer === playerID;
 
-  function handlePlayTile(tileId: string, end: 'left' | 'right') {
-    moves.playTile(tileId, end);
-  }
+  // function handlePlayTile(tileId: string, end: 'left' | 'right') {
+  //   moves.playTile(tileId, end);
+  // }
 
   function handleDraw() {
     moves.drawTile();
@@ -66,7 +66,7 @@ function Board({ G, ctx, moves, playerID }: BoardProps) {
           <button onClick={handleDraw} disabled={G.boneyardCount === 0}>
             Draw ({G.boneyardCount} left)
           </button>
-          <button onClick={handlePass} disabled={G.}>Pass</button>
+          <button onClick={handlePass}>Pass</button>
         </div>
       )}
 
