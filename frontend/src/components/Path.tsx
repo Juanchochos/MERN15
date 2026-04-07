@@ -1,14 +1,22 @@
-const app_name = 'rickymetral.xyz';
-
 export function buildPath(route: string): string {
     const path = route.replace(/^\//, '');
-    if (import.meta.env.MODE == 'development') {
-        // boardgame.io client needs absolute server URL for Socket.IO
-        if (!path) return 'https://localhost:5000';
-        // Same-origin + Vite proxy → avoids cross-origin "Failed to fetch" for /api/*
-        return '/' + path;
+    const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '');
+
+    if (configuredBase) {
+        return path ? `${configuredBase}/${path}` : configuredBase;
     }
-    else {
-        return 'https://' + app_name + ':5000/' + path;
+
+    if (import.meta.env.DEV) {
+        // boardgame.io needs an absolute backend URL for Socket.IO in local development.
+        if (!path) {
+            return 'http://localhost:5000';
+        }
+
+        // Vite proxies /api requests to the local backend.
+        return `/${path}`;
     }
+
+    // In production, send requests back to the current site and let the reverse proxy
+    // handle TLS termination and forwarding to the backend service.
+    return path ? `${window.location.origin}/${path}` : window.location.origin;
 }
