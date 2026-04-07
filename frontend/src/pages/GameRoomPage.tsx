@@ -2,7 +2,7 @@ import { Client } from 'boardgame.io/react';
 import { SocketIO } from 'boardgame.io/multiplayer';
 import { DominoGame } from '../games/DominoGame';
 import { buildPath } from '../components/Path';
-import { Board } from '../components/Board';
+import  Board  from '../components/Board';
 
 type GameRoomProps = {
     matchID: string;
