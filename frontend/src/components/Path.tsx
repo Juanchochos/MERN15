@@ -4,11 +4,11 @@ export function buildPath(route: string): string {
     const path = route.replace(/^\//, '');
     if (import.meta.env.MODE == 'development') {
         // boardgame.io client needs absolute server URL for Socket.IO
-        if (!path) return 'http://localhost:5000';
+        if (!path) return 'https://localhost:5000';
         // Same-origin + Vite proxy → avoids cross-origin "Failed to fetch" for /api/*
         return '/' + path;
     }
     else {
-        return 'http://' + app_name + ':5000/' + path;
+        return 'https://' + app_name + ':5000/' + path;
     }
 }
