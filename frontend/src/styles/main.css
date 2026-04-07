@@ -448,7 +448,8 @@ header {
     opacity: 50%;
 }
 
-#loginName, #loginPassword {
+#loginName, #loginPassword,
+#signupName, #signupPassword, #signupFirstName, #signupLastName, #signupEmail {
 	display: flex;
 	align-items: center;
 	justify-content: center;
