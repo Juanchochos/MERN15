@@ -50,14 +50,14 @@ class _LoginPageState extends State<LoginPage> {
         final data = jsonDecode(response.body);
         if (data['error'] == null || data['error'].isEmpty) {
           // Login successful, navigate to home page
-          /*if (mounted) {
+          if (mounted) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => HomePage(
-                  userId: data['id'],
-                  firstName: data['firstName'],
-                  lastName: data['lastName'],
+                  //userId: data['id'],
+                  //firstName: data['firstName'],
+                  //lastName: data['lastName'],
                 ),
               ),
             );
@@ -65,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
         } else {
           setState(() {
             _errorMessage = data['error'];
-          });*/
+          });
         }
       } else {
         setState(() {
@@ -242,14 +242,14 @@ class _SignupPageState extends State<SignupPage> {
         final data = jsonDecode(response.body);
         if (data['error'] == null || data['error'].isEmpty) {
           // Login successful, navigate to home page
-          /*if (mounted) {
+          if (mounted) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => HomePage(
-                  userId: data['id'],
-                  firstName: data['firstName'],
-                  lastName: data['lastName'],
+                  //userId: data['id'],
+                  //firstName: data['firstName'],
+                  //lastName: data['lastName'],
                 ),
               ),
             );
@@ -257,7 +257,7 @@ class _SignupPageState extends State<SignupPage> {
         } else {
           setState(() {
             _errorMessage = data['error'];
-          });*/
+          });
         }
       } else {
         setState(() {
