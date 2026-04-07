@@ -112,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                       );
                 }, // Replace with actual signup navigation
                 child: const Text(
-                  'Sign up?',
+                  'Need to Sign up?',
                   style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
@@ -121,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
               TextField(
                 controller: _loginController,
                 decoration: const InputDecoration(
-                  labelText: 'Login Name',
+                  labelText: 'Username',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -174,6 +174,8 @@ class SignupPage extends StatefulWidget {
 
 class _SignupPageState extends State<SignupPage> {
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String _errorMessage = '';
@@ -189,6 +191,8 @@ class _SignupPageState extends State<SignupPage> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'login': _loginController.text,
+          'firstName': _firstNameController.text,
+          'lastName': _lastNameController.text,
           'email': _emailController.text,
           'password': _passwordController.text,
         }),
@@ -249,18 +253,52 @@ class _SignupPageState extends State<SignupPage> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
-              TextField(
-                controller: _loginController,
-                decoration: const InputDecoration(
-                  labelText: 'Signup Name',
-                  border: OutlineInputBorder(),
+              TextButton( // remove const to allow for navigation
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context, 
+                    MaterialPageRoute(
+                      builder: (context) => const LoginPage()
+                      )
+                      );
+                }, // Replace with actual signup navigation
+                child: const Text(
+                  'Need to Log in?',
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(height: 40),
               TextField(
+                controller: _loginController,
+                decoration: const InputDecoration(
+                  labelText: 'Username',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(
                   labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _firstNameController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'First Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _lastNameController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Last Name',
                   border: OutlineInputBorder(),
                 ),
               ),
