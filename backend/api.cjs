@@ -13,27 +13,33 @@ exports.setApp = function (server, client) {
   });
 
   server.router.post('/api/login', koaBody(), async (ctx) => {
-    const { login, password } = ctx.request.body;
-    const hash = md5(password);
+    try {
+      const { login, password } = ctx.request.body || {};
+      const hash = md5(password);
 
-    let ret;
+      let ret;
 
-    const results = await User.find({ login: login, password: hash });
+      const results = await User.find({ login: login, password: hash });
 
-    if (results.length > 0) {
-      const user = results[0];
+      if (results.length > 0) {
+        const user = results[0];
 
-      try {
-        ret = token.createToken(user.firstName, user.lastName, user._id);
-      } catch (e) {
-        ret = { error: e.message };
+        try {
+          ret = token.createToken(user.firstName, user.lastName, user._id);
+        } catch (e) {
+          ret = { error: e.message };
+        }
+      } else {
+        ret = { error: "Login/Password incorrect" };
       }
-    } else {
-      ret = { error: "Login/Password incorrect" };
-    }
 
-    ctx.status = 200;
-    ctx.body = ret;
+      ctx.status = 200;
+      ctx.body = ret;
+    } catch (e) {
+      console.error("api/login", e);
+      ctx.status = 503;
+      ctx.body = { error: "Database unavailable. Check MongoDB URI and credentials in .env." };
+    }
   });
 
   server.router.post('/api/register', koaBody(), async (ctx) => {
