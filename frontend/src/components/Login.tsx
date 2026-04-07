@@ -25,10 +25,29 @@ function Login() {
     var js = JSON.stringify(obj);
 
     try {
-      const response = await fetch(buildPath('api/login'),
+      const loginUrl = buildPath('api/login');
+      const response = await fetch(loginUrl,
         { method: 'POST', body: js, headers: { 'Content-Type': 'application/json' } });
 
-      var res = JSON.parse(await response.text());
+      const rawText = await response.text();
+
+      if (!response.ok && !rawText.trim().startsWith("{")) {
+        setMessage(`Server error (${response.status}). Is the API running?`);
+        return;
+      }
+
+      let res: { error?: string; accessToken?: string };
+      try {
+        res = JSON.parse(rawText);
+      } catch {
+        setMessage("Unexpected response from server.");
+        return;
+      }
+
+      if (res.error || !res.accessToken) {
+        setMessage(typeof res.error === 'string' ? res.error : 'Login failed');
+        return;
+      }
 
       const { accessToken } = res;
       storeToken(res);
