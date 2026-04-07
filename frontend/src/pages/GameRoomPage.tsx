@@ -1,15 +1,30 @@
-import GameRoom from '../components/GameRoom'
+import { Client } from 'boardgame.io/react';
+import { SocketIO } from 'boardgame.io/multiplayer';
+import { DominoGame } from '../games/DominoGame';
+import { buildPath } from '../components/Path';
+import { Board } from '../components/Board';
 
-const GameRoomUI = () =>
-{
-    return(
-        <div>
-            <GameRoom 
-                matchID="default-match"//TODO Figure out how to put matchid here
-                playerID="0"//TODO Same goes for playerID
-            />
-        </div>
+type GameRoomProps = {
+    matchID: string;
+    playerID: string;
+    credentials?: string;
+};
+
+const DominoClient = Client({
+    game: DominoGame,
+    board: Board,
+    multiplayer: SocketIO({ server: buildPath('') }),
+    debug: false,
+});
+
+function GameRoom({ matchID, playerID, credentials }: GameRoomProps) {
+    return (
+        <DominoClient
+            matchID={matchID}
+            playerID={playerID}
+            credentials={credentials}
+        />
     );
 }
 
-export default GameRoomUI;
+export default GameRoom;

@@ -1,5 +1,5 @@
 import { INVALID_MOVE } from  "boardgame.io/dist/cjs/core.js";
-import { DominoTile, shuffle, canPlayDomino, getHandScore } from "../src/domino-helper.js";
+import { DominoTile, findFirstPlayer, shuffle, canPlayDomino, getHandScore } from "../src/domino-helper.js";
 
 export const DominoGame = {
     name: "domino",
@@ -17,15 +17,15 @@ export const DominoGame = {
             }
         }
 
-        shuffle(graveyard);
+        let shuffled = shuffle(graveyard);
 
         const hands = {};
         for (let i = 0; i < ctx.numPlayers; i++) {
-            hands[i] = graveyard.splice(0, 7);
+            hands[i] = shuffled.splice(0, 7);
         }
 
         return {
-            graveyard, 
+            graveyard: shuffled, 
             hands,
             board: [],
             boardEnds: { left: null, right: null },
@@ -33,7 +33,30 @@ export const DominoGame = {
         };
     },
 
+
+    // Hide other players' hands
+    playerView({ G, ctx, playerID }) {
+        const sanitized = {G, hands: {} };
+        for (const pid in G.hands) {
+        if (pid === playerID) {
+            sanitized.hands[pid] = G.hands[pid];
+        } else {
+            // Other players only see tile COUNT
+            sanitized.hands[pid] = G.hands[pid].map(() => ({ hidden: true }));
+        }
+        }
+        // Also hide boneyard contents
+        sanitized.boneyard = G.boneyard.map(() => ({ hidden: true }));
+        sanitized.boneyardCount = G.boneyard.length;
+        return sanitized;
+    },
+
     turn: {
+         order: {
+            first: ({ G, ctx }) => findFirstPlayer(G.hands, ctx.numPlayers),
+
+            next: ({ G, ctx }) => (ctx.playOrderPos + 1) % ctx.numPlayers,
+        },
         moveLimit: 1,
     },
 
@@ -76,7 +99,7 @@ export const DominoGame = {
             if (board_end === null) return INVALID_MOVE;
             if (!tile_selected.canPlayEnd(board_end)) return INVALID_MOVE;
 
-            // Orient tile so the matching pip faces the board end
+            // Orient tile so the matching top faces the board end
             if (tile_selected.top !== board_end) {
                 tile_selected.flip();
             }
