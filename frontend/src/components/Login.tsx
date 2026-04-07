@@ -49,7 +49,7 @@ function Login() {
           localStorage.setItem('user_data', JSON.stringify(user));
 
           setMessage('');
-          window.location.href = '/cards';
+          window.location.href = '/create';
         }
       }
       catch (e) {
@@ -73,7 +73,7 @@ function Login() {
 
   return (
     <div id="loginDiv">
-      <span id="inner-title">log In</span><br />
+      <span id="inner-title">Log In</span><br />
 	  <div id="signUpMessage">
 		<p id="signup">Don't have an account?</p>
 		<Link to="/signup">Sign Up</Link>
