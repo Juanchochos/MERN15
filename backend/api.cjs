@@ -61,7 +61,7 @@ exports.setApp = function (server, client) {
 
       const saved = await newUser.save();
 
-      ret = token.createToken(saved.firstName, saved.lastName, saved._id);
+      const ret = token.createToken(saved.firstName, saved.lastName, saved._id);
 
       ctx.status = 201;
       ctx.body = ret;
