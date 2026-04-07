@@ -91,6 +91,13 @@ function Login() {
         return;
       }
 
+      if (res.accessToken) {
+        setRequiresVerification(false);
+        setVerificationCode('');
+        finishLogin(res.accessToken);
+        return;
+      }
+
       if (!res.requiresVerification) {
         setMessage('Login failed');
         return;

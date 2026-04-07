@@ -7,6 +7,7 @@ const authEmail = require("./services/auth_email.cjs");
 
 
 exports.setApp = function (server, client) {
+  const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
 
   server.router.get('/api/ping', async (ctx) => {
     ctx.status = 200;
@@ -22,6 +23,12 @@ exports.setApp = function (server, client) {
       if (!user) {
         ctx.status = 200;
         ctx.body = { error: "Login/Password incorrect" };
+        return;
+      }
+
+      if (skipEmailVerification) {
+        ctx.status = 200;
+        ctx.body = token.createToken(user.firstName, user.lastName, user._id);
         return;
       }
 
