@@ -5,7 +5,7 @@ const { DominoGame } = require('./games/domino.js');
 const mongoose = require("mongoose");
 const server = Server({
   games: [DominoGame],
-  origins: ['http://localhost:5173', 'http://rickymetral.xyz'] 
+  origins: ['http://localhost:5173', 'http://rickymetral.xyz']
 })
 
 
@@ -16,7 +16,7 @@ mongoose.connect(url)
 
 var api = require('./api.cjs');
 
-server.app.use( async (ctx, next) => 
+server.app.use( async (ctx, next) =>
 {
   ctx.set('Access-Control-Allow-Origin', '*');
   ctx.set(

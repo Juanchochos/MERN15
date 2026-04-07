@@ -69,7 +69,7 @@ main {
 }
 
 body {
-	margin: 0; 
+	margin: 0;
     background-image: url("/img/woodBG.jpg");
 	background-size: cover;
 	background-repeat: no-repeat;
@@ -151,7 +151,7 @@ header {
 	justify-content: center;
 }
 
-#title 
+#title
 {
 	font-family: "Exo", sans-serif !important;
 	font-weight: 200;
@@ -270,7 +270,7 @@ header {
 @media (max-width: 1024px) {
 
   .menuButton {
-    display: block; 
+    display: block;
     background: none;
     border: none;
     font-size: 40px;
@@ -303,7 +303,7 @@ header {
   .mobileMenu a:hover {
     color: #39c922;
   }
-  
+
     .HeaderWrapper {
     display: flex;
     justify-content: center; /* move everything to the left */
@@ -311,7 +311,7 @@ header {
     position: relative; /* needed for dropdown positioning */
     padding-left: 10px;
   }
-  
+
   #titleHeaderMobile {
 	display: flex;
 	align-items: center;
@@ -320,7 +320,7 @@ header {
 	gap: 60px;
 	z-index:1;
 	}
-	
+
 	.headerUIMobile {
 		display: flex;
 		align-items: center;
@@ -369,18 +369,18 @@ header {
 	font-weight: 300;
 	color: black;
 	z-index: 1;
-	
+
 	height: 100%;
-	
+
 	border-radius: 3px;
-	
+
     background-image: url("/img/WoodGrain.jpg");
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
 	background-attachment: scroll;
-	
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); 
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 	position: relative;
 	@media (max-width: 1024px) {
 		width: 95%;
@@ -395,7 +395,7 @@ header {
 	justify-content: center;
     color: white;
 	background-color: #259506;
-	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); 
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 	border: 0px;
     font-size: 30px;
     border-radius: 10px;
@@ -406,6 +406,7 @@ header {
 		width: 60%;
 	}
     font-family: "Exo", sans-serif;
+	cursor: pointer;
 }
 
 .buttons2
@@ -424,6 +425,13 @@ header {
 	font-family: "Exo", sans-serif;
 }
 
+.buttons:disabled,
+.buttons2:disabled
+{
+	cursor: default;
+	opacity: 0.7;
+}
+
 #createButton {
 	padding: 10px;
 	width: 70%;
@@ -434,6 +442,45 @@ header {
 #registerButton {
     width: 30%;
     margin-left: 10%;
+}
+
+#verificationPrompt
+{
+	margin: 0;
+	text-align: center;
+}
+
+#verificationActions
+{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 16px;
+	width: 100%;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	@media (max-width: 1024px) {
+		flex-direction: column;
+	}
+}
+
+#verifyButton,
+#backButton
+{
+	margin: 0;
+	width: 38%;
+}
+
+#backButton
+{
+	background-color: #403126;
+}
+
+#backButton:hover
+{
+	background-color: #2f231b;
+	color: #FFFFFF;
+	opacity: 1;
 }
 
 .buttons:hover{
@@ -449,7 +496,7 @@ header {
 }
 
 #loginName, #loginPassword,
-#signupName, #signupPassword, #signupFirstName, #signupLastName, #signupEmail {
+#signupName, #signupPassword, #signupFirstName, #signupLastName, #signupEmail, #verificationCode {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -468,7 +515,7 @@ header {
 		width: 80%;
 	}
 }
-#loginPassword
+#loginPassword, #verificationCode
 {
 	font-size: 30px;
 	@media (max-width: 1024px) {
