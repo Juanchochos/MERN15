@@ -85,6 +85,11 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final ButtonStyle style = ElevatedButton.styleFrom(
+      textStyle: const TextStyle(fontSize: 20),
+      backgroundColor: Colors.green,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('DOMINOES'),
@@ -108,56 +113,84 @@ class _LoginPageState extends State<LoginPage> {
                   style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
-                TextButton( // remove const to allow for navigation
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context, 
-                      MaterialPageRoute(
-                        builder: (context) => const SignupPage()
-                        )
-                        );
-                  }, // Replace with actual signup navigation
-                  child: const Text(
-                    'Need to Sign up?',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
+                Container (
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/WoodGrain.jpg"),
+                      fit: BoxFit.fill,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 40),
-                TextField(
-                  controller: _loginController,
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text('Login', style: TextStyle(fontSize: 16)),
-                ),
-                const SizedBox(height: 16),
-                if (_errorMessage.isNotEmpty)
-                  Text(
-                    _errorMessage,
-                    style: const TextStyle(color: Colors.red, fontSize: 14),
-                    textAlign: TextAlign.center,
-                  ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 40),
+                      TextButton( // remove const to allow for navigation
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context, 
+                            MaterialPageRoute(
+                              builder: (context) => const SignupPage()
+                              )
+                              );
+                        }, // Replace with actual signup navigation
+                        child: 
+                            Text.rich(
+                              const TextSpan(
+                                text: "Don’t have an account? ",
+                                children: [
+                                  TextSpan(
+                                    text: "Sign Up",
+                                    style: TextStyle(color: Colors.lightGreen, fontWeight: FontWeight.bold), 
+                                  ),
+                              ],
+                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium!
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .color!
+                                      .withValues(alpha: 0.8),
+                                ),
+                          ),
+                      ),
+                      const SizedBox(height: 40),
+                      TextField(
+                        controller: _loginController,
+                        decoration: const InputDecoration(
+                          labelText: 'Username',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _login,
+                        style: style,
+                        child: _isLoading
+                            ? const CircularProgressIndicator()
+                            : const Text('Login', style: TextStyle(fontSize: 16)),
+                      ),
+                      const SizedBox(height: 16),
+                      if (_errorMessage.isNotEmpty)
+                        Text(
+                          _errorMessage,
+                          style: const TextStyle(color: Colors.red, fontSize: 14),
+                          textAlign: TextAlign.center,
+                        ),
+                        ],)
+                    ),
               ],
             ),
           ),
@@ -244,6 +277,11 @@ class _SignupPageState extends State<SignupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final ButtonStyle style = ElevatedButton.styleFrom(
+      textStyle: const TextStyle(fontSize: 20),
+      backgroundColor: Colors.green,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('DOMINOES'),
@@ -329,9 +367,7 @@ class _SignupPageState extends State<SignupPage> {
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
+                  style: style,
                   child: _isLoading
                       ? const CircularProgressIndicator()
                       : const Text('Signup', style: TextStyle(fontSize: 16)),
@@ -355,6 +391,107 @@ class _SignupPageState extends State<SignupPage> {
   void dispose() {
     _loginController.dispose();
     _passwordController.dispose();
+    super.dispose();
+  }
+}
+
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _loginController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  //String _errorMessage = '';
+  //bool _isLoading = false;
+  Future<void> _login() async {
+    setState(() {
+      //_isLoading = true;
+      //_errorMessage = '';
+    });
+    /*try {
+      final response = await http.post(
+        Uri.parse('http://rickymetral.xyz:5000/api/signup'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'login': _loginController.text,
+          'firstName': _firstNameController.text,
+          'lastName': _lastNameController.text,
+          'email': _emailController.text,
+          'password': _passwordController.text,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['error'] == null || data['error'].isEmpty) {
+          // Login successful, navigate to home page
+          /*if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(
+                  userId: data['id'],
+                  firstName: data['firstName'],
+                  lastName: data['lastName'],
+                ),
+              ),
+            );
+          }
+        } else {
+          setState(() {
+            _errorMessage = data['error'];
+          });*/
+        }
+      } else {
+        setState(() {
+          //_errorMessage = 'Signup failed. Please try again.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        //_errorMessage = 'Network error. Please check your connection.';
+      });
+    } finally {
+      setState(() {
+        //_isLoading = false;
+      });
+    }*/
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('DOMINOES'),
+        ),
+        body:Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Home Page',
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ]
+            ),
+          ),
+        ),
+      );
+  }
+
+  @override
+  void dispose() {
     super.dispose();
   }
 }
