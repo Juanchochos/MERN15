@@ -117,6 +117,11 @@ function SignUp() {
 		<p id="signup">Already have an account?</p>
 		<Link to="/">Log in</Link>
 	  </div>
+      <input type="text" id="loginName" placeholder="Username" /><br />
+      <input type="password" id="loginPassword" placeholder="Password" />
+      <input type="submit" id="loginButton" className="buttons" value="Sign Up" />
+	  {/* <span id="loginResult">{}</span> */}
+        {/* HIDDEN WILL FIX LATER TO AVOID CONFLICTS
       <input type="text" id="signupName" placeholder="Username"
         onChange={handleSetSignupName} />
       <input type="password" id="signupPassword" placeholder="Password"
@@ -130,6 +135,7 @@ function SignUp() {
       <input type="submit" id="signupButton" className="buttons" value="Sign Up"
         onClick={doSignUp} />
       <span id="signupResult">{message}</span>
+*/}
     </div>
   );
 };
