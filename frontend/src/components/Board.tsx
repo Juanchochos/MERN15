@@ -25,7 +25,6 @@ interface ExtendedBoardProps extends BoardProps {
 function Board({
   G, ctx, moves, playerID,
   playerConfigs = [],
-  handGap = 40,
   handHeight = 120,
 }: ExtendedBoardProps) {
   const pid = playerID ?? '0';
