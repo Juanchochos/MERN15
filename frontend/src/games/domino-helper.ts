@@ -45,15 +45,19 @@ export function shuffle<T>(array: T[]): T[] {
     return array;
 }
 
-// Checks if a player can play at least one domino in their hand
+// Checks if a player can play at least one domino in their hand.
+// Accepts plain { top, bottom } objects — no class methods required.
 export function canPlayDomino(
     left_end: number,
     right_end: number,
-    hand: DominoTile[]
+    hand: { top: number; bottom: number }[]
 ): boolean {
-    return hand.some((tile) => tile.canPlay(left_end, right_end));
+    return hand.some(t =>
+        t.top === left_end || t.bottom === left_end ||
+        t.top === right_end || t.bottom === right_end
+    );
 }
 
-export function getHandScore(hand: DominoTile[]): number {
-    return hand.reduce((score, tile) => score + tile.top + tile.bottom, 0);
+export function getHandScore(hand: { top: number; bottom: number }[]): number {
+    return hand.reduce((score, t) => score + t.top + t.bottom, 0);
 }
