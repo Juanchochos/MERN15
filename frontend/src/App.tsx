@@ -7,6 +7,9 @@ import SignUpPage from './pages/SignUpPage';
 import CardPage from './pages/CardPage';
 import CreatePage from './pages/CreatePage';
 import GameRoomPage from './pages/GameRoomPage';
+import OpponentPage from './pages/OpponentPage';
+import JoinPage from './pages/JoinPage';
+import LobbyPage from './pages/LobbyPage';
 
 function App() {
   return (
@@ -15,6 +18,9 @@ function App() {
         <Route path="/" element={<LoginPage/>}/>
 		<Route path="/signup" element={<SignUpPage />} />
 		<Route path="/create" element={<CreatePage />} />
+		<Route path="/Opponent" element={<OpponentPage />} />
+		<Route path="/Join" element={<JoinPage />} />
+		<Route path="/Lobby" element={<LobbyPage />} />
         <Route path="/cards" element={<CardPage/>}/>
         <Route path="/game" element={<GameRoomPage/>} />
         <Route path="*" element={<Navigate to="/" replace />}/>

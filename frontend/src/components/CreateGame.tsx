@@ -5,7 +5,7 @@ function Create() {
       <input type="submit" id="createButton" className="buttons" value="Create Game" />
       <input type="submit" id="createButton" className="buttons" value="Join Game" />
       <input type="submit" id="createButton" className="buttons" value="Shop" />
-      /* <span id="loginResult">{}</span> */
+	  {/* <span id="loginResult">{}</span> */}
     </div>
   );
 };

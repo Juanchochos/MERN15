@@ -1,15 +1,15 @@
 import PageHeader from '../components/PageHeader.tsx';
-import Create from '../components/CreateGame.tsx';
+import Join from '../components/Join.tsx';
 
-const CreatePage = () =>
+const JoinPage = () =>
 {
 
     return(
       <div>
         <PageHeader />
-        <Create />
+        <Join />
       </div>
     );
 };
 
-export default CreatePage;
+export default JoinPage;

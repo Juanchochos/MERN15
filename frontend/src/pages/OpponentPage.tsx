@@ -1,15 +1,15 @@
 import PageHeader from '../components/PageHeader.tsx';
-import Create from '../components/CreateGame.tsx';
+import Opponent from '../components/Opponent.tsx';
 
-const CreatePage = () =>
+const OpponentPage = () =>
 {
 
     return(
       <div>
         <PageHeader />
-        <Create />
+        <Opponent />
       </div>
     );
 };
 
-export default CreatePage;
+export default OpponentPage;
