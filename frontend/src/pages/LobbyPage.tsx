@@ -4,7 +4,7 @@ import PageHeader from '../components/PageHeader.tsx';
 import LobbyView from '../components/Lobby.tsx';
 import { Lobby } from '../games/domino-lobby';
 
-const SERVER = import.meta.env.VITE_BGIO_SERVER_URL ?? 'http://localhost:5000';
+import { SERVER_URL as SERVER } from '../components/Path';
 
 interface SessionState {
   matchID: string;

@@ -4,7 +4,8 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const serverUrl = env.VITE_BGIO_SERVER_URL || 'http://localhost:8000'
+  const port = env.VITE_BACKEND_PORT || '8000'
+  const serverUrl = `http://localhost:${port}`
 
   return {
     plugins: [react()],

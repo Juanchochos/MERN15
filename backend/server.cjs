@@ -34,4 +34,5 @@ api.setApp(server, mongoose );
 
 
 
-server.run(8000, () => console.log('Server on :8000d'));
+const PORT = process.env.PORT || 8000;
+server.run(PORT, () => console.log(`Server on :${PORT}`));

@@ -7,7 +7,7 @@ import { Lobby } from '../games/domino-lobby';
 //   2. Change onJoin to call navigate('/game', { state: session })
 //   3. In GameRoomPage, read session from useLocation().state
 
-const SERVER = import.meta.env.VITE_BGIO_SERVER_URL ?? 'http://localhost:5000';
+import { SERVER_URL as SERVER } from './Path';
 
 export interface LobbySession {
   matchID: string;

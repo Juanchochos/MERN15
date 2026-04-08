@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lobby } from '../games/domino-lobby';
 
-const SERVER = import.meta.env.VITE_BGIO_SERVER_URL ?? 'http://localhost:5000';
+import { SERVER_URL as SERVER } from './Path';
 
 function Join() {
   const [roomCode, setRoomCode] = useState('');

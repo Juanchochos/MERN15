@@ -1,3 +1,6 @@
+const port = import.meta.env.VITE_BACKEND_PORT || '8000';
+export const SERVER_URL = `http://localhost:${port}`;
+
 export function buildPath(route: string): string {
     const path = route.replace(/^\//, '');
     const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '');
@@ -9,7 +12,7 @@ export function buildPath(route: string): string {
     if (import.meta.env.DEV) {
         // boardgame.io needs an absolute backend URL for Socket.IO in local development.
         if (!path) {
-            return import.meta.env.VITE_BGIO_SERVER_URL || 'http://localhost:8000';
+            return SERVER_URL;
         }
 
         // Vite proxies /api requests to the local backend.

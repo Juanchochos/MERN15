@@ -7,7 +7,7 @@ import Board from '../components/Board';
 import PageHeader from '../components/PageHeader';
 import type { PlayerConfig } from '../games/player-types';
 
-const SERVER = import.meta.env.VITE_BGIO_SERVER_URL ?? 'http://localhost:5000';
+import { SERVER_URL as SERVER } from '../components/Path';
 
 const HAND_MAX_WIDTH = 450;
 const HAND_HEIGHT    = 130;
