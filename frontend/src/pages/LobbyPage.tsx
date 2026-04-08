@@ -69,7 +69,7 @@ const LobbyPage = () => {
 
   return (
     <div>
-      <PageHeader />
+      <PageHeader warnOnLeave />
       <LobbyView
         matchID={matchID}
         players={players}

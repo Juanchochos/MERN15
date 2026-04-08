@@ -8,6 +8,7 @@ import MainPage from './pages/MainPage';
 import GameRoomPage from './pages/GameRoomPage';
 import JoinPage from './pages/JoinPage';
 import LobbyPage from './pages/LobbyPage';
+import MatchHistoryPage from './pages/MatchHistoryPage';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/Join" element={<JoinPage />} />
         <Route path="/Lobby" element={<LobbyPage />} />
         <Route path="/game" element={<GameRoomPage />} />
+        <Route path="/match-history" element={<MatchHistoryPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

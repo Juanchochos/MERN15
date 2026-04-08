@@ -303,6 +303,23 @@ header {
     color: #39c922;
   }
 
+  .mobileMenu button {
+    color: var(--text);
+    background: none;
+    border: none;
+    font-size: 20px;
+    font-family: "Exo", sans-serif;
+    cursor: pointer;
+    padding: 0;
+    display: block;
+    width: 100%;
+    text-align: left;
+  }
+
+  .mobileMenu button:hover {
+    color: #39c922;
+  }
+
     .HeaderWrapper {
     display: flex;
     justify-content: center; /* move everything to the left */
@@ -354,6 +371,11 @@ header {
 	font-size: 40px;
     color: var(--text);
 	text-decoration: none;
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-family: "Exo", sans-serif;
+	padding: 0;
 }
 
 #loginDiv
@@ -686,4 +708,70 @@ a {
 	color: #259506;
 	font-weight: 500;
 	font-family: "Exo", sans-serif;
+}
+
+.modalOverlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+}
+
+.modalContent {
+	background: #1a1a1a;
+	color: #F0DFD3;
+	border: 2px solid #39c922;
+	border-radius: 8px;
+	padding: 2rem;
+	width: min(90vw, 420px);
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+	font-family: "Exo", sans-serif;
+}
+
+.modalContent h2 {
+	margin: 0;
+	color: #39c922;
+	border-bottom: 2px solid #39c922;
+	padding-bottom: 0.5rem;
+}
+
+.modalScrollBody {
+	max-height: 300px;
+	overflow-y: auto;
+	padding-right: 0.5rem;
+}
+
+.modalActions {
+	display: flex;
+	gap: 1rem;
+	justify-content: flex-end;
+}
+
+.modalButton {
+	background: #39c922;
+	color: black;
+	border: none;
+	border-radius: 4px;
+	padding: 0.5rem 1.25rem;
+	font-family: "Exo", sans-serif;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.modalButton:hover {
+	background: #2fa81a;
+}
+
+.modalButtonDanger {
+	background: #c92222;
+	color: #F0DFD3;
+}
+
+.modalButtonDanger:hover {
+	background: #a81a1a;
 }

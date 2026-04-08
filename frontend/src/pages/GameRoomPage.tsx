@@ -68,7 +68,7 @@ function GameRoomPage() {
         id="gameRoomPage"
         style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}
       >
-        <PageHeader />
+        <PageHeader warnOnLeave />
         <div style={{ flex: 1, overflow: 'hidden' }}>
           <DominoClient
             matchID={session.matchID}
