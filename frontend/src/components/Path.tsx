@@ -1,5 +1,7 @@
 const port = import.meta.env.VITE_BACKEND_PORT || '8000';
-export const SERVER_URL = `http://localhost:${port}`;
+export const SERVER_URL = import.meta.env.DEV
+    ? `http://localhost:${port}`
+    : window.location.origin;
 
 export function buildPath(route: string): string {
     const path = route.replace(/^\//, '');
