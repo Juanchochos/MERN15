@@ -11,6 +11,7 @@ interface HandPanelProps {
   isMyTurn: boolean;
   boardEnds: { left: number | null; right: number | null };
   localOrder?: number[];
+  newTileIndex?: number | null;
 }
 
 function canPlayTile(tile: any, boardEnds: { left: number | null; right: number | null }): boolean {
@@ -26,6 +27,7 @@ function HandPanel({
   isMyTurn,
   boardEnds,
   localOrder,
+  newTileIndex,
 }: HandPanelProps) {
   const padding = 12;
   const sortableIds = (localOrder ?? []).map(i => `tile-${i}`);
@@ -92,6 +94,12 @@ function HandPanel({
           .hand-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 3px; margin: 0 8px; }
           .hand-scroll::-webkit-scrollbar-thumb { background: #259506; border-radius: 3px; }
         `}</style>
+        <style>{`
+          @keyframes tileSlideIn {
+            from { transform: translateX(40px); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+          }
+        `}</style>
         <div style={tileInnerStyle}>
           {isLocalPlayer && localOrder ? (
             <SortableContext items={sortableIds} strategy={horizontalListSortingStrategy}>
@@ -99,15 +107,20 @@ function HandPanel({
                 const tile = tiles[tileIdx];
                 if (!tile) return null;
                 const id = `tile-${tileIdx}`;
+                const isNew = tileIdx === newTileIndex;
                 return (
-                  <SortableTile
+                  <div
                     key={id}
-                    id={id}
-                    handIndex={tileIdx}
-                    top={tile.top}
-                    bottom={tile.bottom}
-                    isPlayable={isMyTurn && canPlayTile(tile, boardEnds)}
-                  />
+                    style={isNew ? { animation: 'tileSlideIn 0.35s ease' } : undefined}
+                  >
+                    <SortableTile
+                      id={id}
+                      handIndex={tileIdx}
+                      top={tile.top}
+                      bottom={tile.bottom}
+                      isPlayable={isMyTurn && canPlayTile(tile, boardEnds)}
+                    />
+                  </div>
                 );
               })}
             </SortableContext>

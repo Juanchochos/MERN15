@@ -50,11 +50,12 @@ export function shuffle(array) {
 //Checks if a player can play at least one domino in their hand
 export function canPlayDomino(left_end, right_end, hand){
     for(let i = 0; i < hand.length; i++){
-        if(hand[i].canPlay(left_end, right_end)){
+        const t = hand[i];
+        if(t.top === left_end || t.bottom === left_end ||
+           t.top === right_end || t.bottom === right_end){
             return true;
         }
     }
-
     return false;
 }
 
@@ -70,26 +71,25 @@ export function getHandScore(hand){
 
 //Player with highest double goes first, if no doubles, then highest single tile goes first
 export function findFirstPlayer(hands, numPlayers){
-    let max_dub = 0
-    let max_single = 0
-    let first_player = 0
+    let max_dub = -1;
+    let max_single = -1;
+    let first_player = 0;
     for(let i = 0; i < numPlayers; i++){
         let hand = hands[i];
         for(let j = 0; j < hand.length; j++){
-            if(hand[j].isDouble){
-                if(hand[j].top > max_dub){
-                    max_dub = hand[j].top;
+            const t = hand[j];
+            if(t.top === t.bottom){
+                if(t.top > max_dub){
+                    max_dub = t.top;
                     first_player = i;
                 }
-            }
-            else{
-                if(hand[j].top + hand[j].bottom > max_single){
-                    max_single = hand[j].top + hand[j].bottom;
+            } else if(max_dub === -1) {
+                if(t.top + t.bottom > max_single){
+                    max_single = t.top + t.bottom;
                     first_player = i;
                 }
             }
         }
     }
-
     return first_player;
 }
