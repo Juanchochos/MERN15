@@ -9,7 +9,7 @@ export function buildPath(route: string): string {
     if (import.meta.env.DEV) {
         // boardgame.io needs an absolute backend URL for Socket.IO in local development.
         if (!path) {
-            return 'http://localhost:5000';
+            return import.meta.env.VITE_BGIO_SERVER_URL || 'http://localhost:8000';
         }
 
         // Vite proxies /api requests to the local backend.
