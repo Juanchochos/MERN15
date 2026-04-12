@@ -109,12 +109,13 @@ export const DominoGame = {
                 ? { top: tile.top, bottom: tile.bottom }
                 : { top: tile.bottom, bottom: tile.top };
 
-            G.board.push({ domino: oriented, side: end_played });
 
             if (end_played === "left") {
                 G.boardEnds.left = oriented.bottom;
+                G.board.unshift({ domino: oriented, side: end_played });
             } else {
                 G.boardEnds.right = oriented.bottom;
+                G.board.push({ domino: oriented, side: end_played });
             }
 
             hand.splice(tileIdx, 1);
