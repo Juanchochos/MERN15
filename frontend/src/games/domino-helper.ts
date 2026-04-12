@@ -58,6 +58,18 @@ export function canPlayDomino(
     );
 }
 
+// src/shared/dominoValidation.ts
+export function canPlayTile(
+  tile: { top: number; bottom: number },
+  boardEnds: { left: number; right: number },
+  end: 'left' | 'right',
+  boardIsEmpty: boolean
+): boolean {
+  if (boardIsEmpty) return true;
+  const targetEnd = end === 'left' ? boardEnds.left : boardEnds.right;
+  return tile.top === targetEnd || tile.bottom === targetEnd;
+}
+
 export function getHandScore(hand: { top: number; bottom: number }[]): number {
     return hand.reduce((score, t) => score + t.top + t.bottom, 0);
 }

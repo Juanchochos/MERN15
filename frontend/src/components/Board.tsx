@@ -13,8 +13,11 @@ import { arrayMove } from '@dnd-kit/sortable';
 import DominoTile from './DominoTile';
 import HandPanel from './HandPanel';
 import DropZone from './DropZone';
+import { canPlayTile } from '../games/domino-helper';
 import type { DragData, DropData } from '../games/dnd-types';
 import type { PlayerConfig } from '../games/player-types';
+import { useNavigate } from 'react-router-dom';
+
 
 interface ExtendedBoardProps extends BoardProps {
   playerConfigs?: PlayerConfig[];
@@ -27,6 +30,7 @@ function Board({
   playerConfigs = [],
   handHeight = 120,
 }: ExtendedBoardProps) {
+  const navigate = useNavigate();
   const pid = playerID ?? '0';
   const myHand: any[] = G.hands[pid] ?? [];
   const isMyTurn = ctx.currentPlayer === pid;
@@ -76,7 +80,15 @@ function Board({
 
     if (dragData?.type === 'HAND_TILE' && dropData && 'zone' in dropData) {
       const playedIdx = dragData.handIndex;
-      moves.playTile(playedIdx, dropData.zone === 'RIGHT_END' ? 'right' : 'left');
+      const tile = myHand[playedIdx];
+      const end = dropData.zone === 'RIGHT_END' ? 'right' : 'left';
+
+      if (!canPlayTile(tile, G.boardEnds, end, boardIsEmpty)) {
+        return;
+      }
+
+      moves.playTile(playedIdx, end);
+
       setLocalOrder(prev =>
         prev.filter(i => i !== playedIdx).map(i => i > playedIdx ? i - 1 : i)
       );
@@ -117,6 +129,12 @@ function Board({
       newTileIndex={config.playerID === pid ? newTileIdx : undefined}
     />
   );
+
+  // Split the board into left plays and right plays
+  const centerIdx = G.board.findIndex((e: any) => e.side === 'center');
+  const leftTiles  = G.board.slice(0, centerIdx).reverse(); // played on left end
+  const centerTile = G.board[centerIdx];
+  const rightTiles = G.board.slice(centerIdx + 1);      
 
   return (
     <DndContext
@@ -182,9 +200,11 @@ function Board({
                     const anim = isLast
                       ? `${entry.side === 'right' ? 'slideInRight' : 'slideInLeft'} 0.25s ease`
                       : undefined;
+                    const top_dots = entry.side === 'right' ? entry.domino.top : entry.domino.bottom;
+                    const bottom_dots = entry.side === 'right' ? entry.domino.bottom : entry.domino.top;
                     return (
                       <div key={idx} style={{ animation: anim }}>
-                        <DominoTile top={entry.domino.top} bottom={entry.domino.bottom} horizontal />
+                        <DominoTile top={top_dots} bottom={bottom_dots} horizontal />
                       </div>
                     );
                   })}
@@ -217,6 +237,13 @@ function Board({
           {ctx.gameover && (
             <div style={gameoverStyle}>
               {ctx.gameover.winner === pid ? 'You Win!' : `Player ${ctx.gameover.winner} wins!`}
+              <br/>
+              <button
+                onClick={() => navigate('/main', { replace: true })}
+                style={btnStyle(false)}
+              >
+                Return to home
+              </button>
             </div>
           )}
         </div>
@@ -257,7 +284,9 @@ const gameoverStyle: React.CSSProperties = {
   inset: 0,
   background: 'rgba(0,0,0,0.85)',
   display: 'flex',
+  flexDirection: 'column',
   alignItems: 'center',
+  gap: '20px',
   justifyContent: 'center',
   fontSize: 48,
   color: '#f5f0e8',

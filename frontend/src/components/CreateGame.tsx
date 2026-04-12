@@ -5,7 +5,7 @@ import { Lobby } from '../games/domino-lobby';
 import { SERVER_URL as SERVER } from './Path';
 
 function Create() {
-  const [step, setStep] = useState<'options' | 'mode'>('options');
+  const [step, setStep] = useState<'options' | 'modeSelection'>('options');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -29,33 +29,70 @@ function Create() {
     }
   }
 
-  if (step === 'mode') {
-    return (
-      <div id="loginDiv">
-        <span id="inner-title">Choose Opponents</span><br />
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <input
-          type="submit" id="opponentButton" className="buttons" value={loading ? 'Creating...' : '1v1'}
-          disabled={loading}
-          onClick={() => handleModeSelect('1v1')}
-        />
-        <div id="orBox">
-          <h1 id="orH1">OR</h1>
+  if (step === 'modeSelection') {
+    
+  return (
+    <>
+      {step === 'modeSelection' && (
+         <button
+        onClick={() => { setStep('options'); setError(''); }}
+        style={{
+          alignSelf: 'flex-start',
+          marginLeft: 24,
+          marginTop: 5,
+          background: 'none',
+          border: 'none',
+          color: '#F0DFD3',
+          fontSize: 20,
+          cursor: 'pointer',
+          fontFamily: '"Exo", sans-serif',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        ← Back
+      </button>
+      )}
+
+      {step === 'modeSelection' ? (
+        <div id="loginDiv">
+          <span id="inner-title">Choose Opponents</span><br />
+          {error && <p style={{ color: 'red' }}>{error}</p>}
+          <input
+            type="submit" id="opponentButton" className="buttons"
+            value={loading ? 'Creating...' : '1v1'}
+            disabled={loading}
+            onClick={() => handleModeSelect('1v1')}
+          />
+          <div id="orBox">
+            <h1 id="orH1">OR</h1>
+          </div>
+          <input
+            type="submit" id="opponent2Button" className="buttons"
+            value={loading ? 'Creating...' : '2v2'}
+            disabled={loading}
+            onClick={() => handleModeSelect('2v2')}
+          />
         </div>
-        <input
-          type="submit" id="opponent2Button" className="buttons" value={loading ? 'Creating...' : '2v2'}
-          disabled={loading}
-          onClick={() => handleModeSelect('2v2')}
-        />
-      </div>
-    );
-  }
+      ) : (
+        <div id="loginDiv">
+          <span id="inner-title">Options</span><br />
+          <input type="submit" id="createButton" className="buttons" value="Create Game"
+            onClick={() => setStep('modeSelection')} />
+          <input type="submit" id="createButton" className="buttons" value="Join Game"
+            onClick={() => navigate('/Join')} />
+        </div>
+      )}
+    </>
+  );
+}
 
   return (
     <div id="loginDiv">
       <span id="inner-title">Options</span><br />
       <input type="submit" id="createButton" className="buttons" value="Create Game"
-        onClick={() => setStep('mode')} />
+        onClick={() => setStep('modeSelection')} />
       <input type="submit" id="createButton" className="buttons" value="Join Game"
         onClick={() => navigate('/Join')} />
       {/* <input type="submit" id="createButton" className="buttons" value="Shop" /> */}
