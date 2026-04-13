@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const GameHistorySchema = new mongoose.Schema({
+    uid: { type: String, unique: true },
     players: [{
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         name:   { type: String, required: true }

@@ -153,7 +153,9 @@ exports.setApp = function (server, client) {
 
   server.router.post('/api/add-match-history', authenticateToken, koaBody(), async(ctx) => {
     try{
-      const {players, winners, losers} = ctx.request.body;
+      const gameTime = new Date(); 
+
+      const {players, winners, losers, createdAt} = ctx.request.body;
 
       if (!players || !Array.isArray(players) || players.length === 0) {
         ctx.status = 400;
@@ -173,11 +175,17 @@ exports.setApp = function (server, client) {
         return;
       }
 
+      const playerIds = players.map(p => p.userId).sort().join('|');
+      const uid = `${playerIds}-${createdAt}`;
+
       const newGame = new GameHistory({
+        uid: uid,
         players: players, 
         winners: winners,
         losers: losers
       });
+
+      await newGame.validate();
 
       const saved = await newGame.save();
 
@@ -197,8 +205,11 @@ exports.setApp = function (server, client) {
       }
 
       if (e.code === 11000) {
-        ctx.status = 409;
-        ctx.body = { error: 'Duplicate field value' };
+        ctx.status = 201;
+        ctx.body = { 
+          message: 'Added match to match history' ,
+          accessToken: ctx.state.refreshedToken
+        };
         return;
       }
 
