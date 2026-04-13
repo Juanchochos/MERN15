@@ -16,8 +16,58 @@ import DropZone from './DropZone';
 import { canPlayTile } from '../games/domino-helper';
 import type { DragData, DropData } from '../games/dnd-types';
 import type { PlayerConfig } from '../games/player-types';
-import { useNavigate } from 'react-router-dom';
+import { buildPath } from './Path';
 
+
+/**
+ * Updates the match history record in the database.
+ * * @param {Object[]} players - An array of all participating players.
+ * @param {string}   players[].userId - The MongoDB ObjectId of the user.
+ * @param {string}   players[].name - The display name of the player.
+ * * @param {Object[]} winners - An array of the winning players.
+ * @param {string}   winners[].userId - The MongoDB ObjectId of the user.
+ * @param {string}   winners[].name - The display name of the player.
+ * * @param {Object[]} losers - An array of the losing players.
+ * @param {string}   losers[].userId - The MongoDB ObjectId of the user.
+ * @param {string}   losers[].name - The display name of the player.
+ ** @param {Date}   timeFinished - DateTime object representing when the game finished.
+ */
+async function updateMatchHistory(players: Array<object>, winners: Array<object>, losers: Array<object>, timeFinished: Date){
+  try {
+    const payload = {
+      players,
+      winners,
+      losers,
+      timeFinished,
+    };
+
+    const response = await fetch(buildPath('/api/add-match-history'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to update match history');
+    }
+
+    if (result.accessToken) {
+      localStorage.setItem('accessToken', result.accessToken);
+    }
+
+    console.log('Match history updated:', result.message);
+
+  } catch (error) {
+    console.error('Error in updateMatchHistory:', error);
+
+    console.error('Could not update Match History');
+  }
+}
 
 interface ExtendedBoardProps extends BoardProps {
   playerConfigs?: PlayerConfig[];
