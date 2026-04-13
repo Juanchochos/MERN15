@@ -155,7 +155,7 @@ exports.setApp = function (server, client) {
     try{
       const gameTime = new Date(); 
 
-      const {players, winners, losers, createdAt} = ctx.request.body;
+      const {players, winners, losers, timeFinished} = ctx.request.body;
 
       if (!players || !Array.isArray(players) || players.length === 0) {
         ctx.status = 400;
@@ -175,14 +175,21 @@ exports.setApp = function (server, client) {
         return;
       }
 
+      if (gameTime.now < timeFinished){
+        ctx.status = 400;
+        ctx.body = { error: 'Game time finished not valid.' };
+        return;
+      }
+
       const playerIds = players.map(p => p.userId).sort().join('|');
-      const uid = `${playerIds}-${createdAt}`;
+      const uid = `${playerIds}-${timeFinished}`;
 
       const newGame = new GameHistory({
         uid: uid,
         players: players, 
         winners: winners,
-        losers: losers
+        losers: losers,
+        timeFinished: timeFinished
       });
 
       await newGame.validate();
