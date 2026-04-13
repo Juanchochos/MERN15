@@ -30,6 +30,9 @@ server.app.use( async (ctx, next) =>
   await next();
 });
 
+server.app.use(server.router.routes());
+server.app.use(server.router.allowedMethods());
+
 api.setApp(server, mongoose );
 
 

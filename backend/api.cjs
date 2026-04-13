@@ -4,6 +4,8 @@ const Card = require("./models/card.cjs");
 const md5 = require("md5");
 const { koaBody } = require("koa-body");
 const authEmail = require("./services/auth_email.cjs");
+const GameHistory = require("./models/gameHistory.cjs");
+const authenticateToken = require("./middleware/auth.cjs");
 
 
 exports.setApp = function (server, client) {
@@ -149,53 +151,100 @@ exports.setApp = function (server, client) {
     }
   });
 
-  server.router.post('/api/addcard', koaBody(), async (ctx) => {
-    const { userId, card, jwtToken } = ctx.request.body;
+  server.router.post('/api/add-match-history', authenticateToken, koaBody(), async(ctx) => {
+    try{
+      const {players, winners, losers} = ctx.request.body;
 
-    if (token.isExpired(jwtToken)) {
-      ctx.status = 200;
-      ctx.body = { error: 'The JWT is no longer valid', jwtToken: '' };
-      return;
+      if (!players || !Array.isArray(players) || players.length === 0) {
+        ctx.status = 400;
+        ctx.body = { error: 'Players field is required and must be a non-empty array' };
+        return;
+      }
+
+      if (!winners || !Array.isArray(winners) || winners.length === 0) {
+        ctx.status = 400;
+        ctx.body = { error: 'Winners field is required and must be a non-empty array' };
+        return;
+      }
+
+      if (!losers || !Array.isArray(losers) || losers.length === 0) {
+        ctx.status = 400;
+        ctx.body = { error: 'Losers field is required and must be a non-empty array' };
+        return;
+      }
+
+      const newGame = new GameHistory({
+        players: players, 
+        winners: winners,
+        losers: losers
+      });
+
+      const saved = await newGame.save();
+
+      ctx.status = 201;
+      ctx.body = { 
+        message: 'Added match to match history' ,
+        accessToken: ctx.state.refreshedToken
+      };
+
+    } catch(e){
+      console.error("Register error:", e);
+
+      if (e.name === 'ValidationError') {
+        ctx.status = 400;
+        ctx.body = { error: e.message };
+        return;
+      }
+
+      if (e.code === 11000) {
+        ctx.status = 409;
+        ctx.body = { error: 'Duplicate field value' };
+        return;
+      }
+
+      ctx.status = 500;
+      ctx.body = { error: 'Internal server error' };
     }
-
-    let error = '';
-
-    try {
-      const newCard = new Card({ Card: card, UserId: userId });
-      await newCard.save();
-    } catch (e) {
-      error = e.toString();
-    }
-
-    const refreshedToken = token.refresh(jwtToken);
-
-    ctx.status = 201;
-    ctx.body = { error, jwtToken: refreshedToken };
   });
 
-  server.router.post('/api/searchcards', koaBody(), async (ctx) => {
-    const { userId, search, jwtToken } = ctx.request.body;
+  server.router.post('/api/fetch-match-history', authenticateToken, koaBody(), async(ctx) => {
+    try{
+      const { userId } = ctx.request.body;
 
-    if (token.isExpired(jwtToken)) {
-      ctx.status = 200;
-      ctx.body = { error: 'The JWT is no longer valid', jwtToken: '' };
-      return;
+      const games = await GameHistory.find({ "players.userId": userId }).sort({date: -1}).limit(5);
+
+      if(games && games.length > 0){
+        ctx.status = 200;
+        ctx.body = { 
+          message: 'Succesfully retrieved match history' ,
+          data: games,
+          accessToken: ctx.state.refreshedToken
+        };
+      }
+      
+      else{
+        ctx.status = 200;
+        ctx.body = { message: 'No games found', data: [] };
+      }
+
+    } catch(e){
+      console.error("Register error:", e);
+
+      if (e.name === 'ValidationError') {
+        ctx.status = 400;
+        ctx.body = { error: e.message };
+        return;
+      }
+
+      if (e.code === 11000) {
+        ctx.status = 409;
+        ctx.body = { error: 'Duplicate field value' };
+        return;
+      }
+
+      ctx.status = 500;
+      ctx.body = { error: 'Internal server error' };
     }
-
-    const _search = search.trim();
-
-    const results = await Card.find({
-      Card: { $regex: _search + '.*', $options: 'i' }
-    });
-
-    const _ret = results.map(r => r.Card);
-
-    const refreshedToken = token.refresh(jwtToken);
-
-    ctx.status = 200;
-    ctx.body = { results: _ret, error: '', jwtToken: refreshedToken };
   });
+}
 
-  server.app.use(server.router.routes());
-  server.app.use(server.router.allowedMethods());
-};
