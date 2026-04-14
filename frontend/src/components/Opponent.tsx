@@ -1,5 +1,5 @@
 function Opponent() {
-	  return (
+  return (
     <div id="loginDiv">
       <span id="inner-title">Choose Opponents</span><br />
       <input type="submit" id="opponentButton" className="buttons" value="1v1" />
