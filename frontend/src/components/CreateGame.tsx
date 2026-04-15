@@ -14,7 +14,7 @@ function Create() {
     setLoading(true);
     setError('');
     try {
-      const userData = localStorage.getItem('user_data');
+      const userData = sessionStorage.getItem('user_data');
       const firstName = userData ? JSON.parse(userData).firstName : 'Host';
       const numPlayers = mode === '1v1' ? 2 : 4;
 

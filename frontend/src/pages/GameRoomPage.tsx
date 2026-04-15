@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Client } from 'boardgame.io/react';
 import { SocketIO } from 'boardgame.io/multiplayer';
@@ -6,34 +6,24 @@ import { DominoGame } from '../games/DominoGame';
 import Board from '../components/Board';
 import PageHeader from '../components/PageHeader';
 import type { PlayerConfig } from '../games/player-types';
+import { Lobby } from '../games/domino-lobby';
 
 import { SERVER_URL as SERVER } from '../components/Path';
 
 const HAND_MAX_WIDTH = 450;
 const HAND_HEIGHT    = 130;
 const HAND_GAP       = 40;
+const lobby = new Lobby(SERVER);
 
-function derivePlayerConfigs(myID: string, numPlayers: number): PlayerConfig[] {
-  if (numPlayers === 2) {
-    const other = myID === '0' ? '1' : '0';
-    return [
-      { playerID: myID,  username: 'You',      team: 0 },
-      { playerID: other, username: 'Opponent', team: 1 },
-    ];
-  }
-  return (['0', '1', '2', '3'] as const).map(id => ({
-    playerID: id,
-    username: id === myID ? 'You' : `Player ${id}`,
-    team: (Number(id) % 2 === Number(myID) % 2) ? 0 : 1,
-  }));
-}
 
 const BoardWrapper = (props: any) => {
-  const configs = derivePlayerConfigs(props.playerID ?? '0', props.ctx.numPlayers);
+  // props.playerConfigs comes from the DominoClient usage above
+  if (!props.playerConfigs) return null; 
+
   return (
     <Board
       {...props}
-      playerConfigs={configs}
+      playerConfigs={props.playerConfigs} 
       handMaxWidth={HAND_MAX_WIDTH}
       handHeight={HAND_HEIGHT}
       handGap={HAND_GAP}
@@ -48,36 +38,57 @@ const DominoClient = Client({
   debug: false,
 });
 
+
 function GameRoomPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const session = location.state as { matchID: string; playerID: string; credentials: string } | null;
 
+  const [playerConfigs, setPlayerConfigs] = useState<PlayerConfig[] | null>(null);
+
   useEffect(() => {
     if (!session) {
       navigate('/main', { replace: true });
+      return;
     }
-  }, []);
 
-  if (!session) return null;
+    async function initRoom() {
+      try {
+        if(!session){
+          return;
+        }
+        const meta = await lobby.getMatch(session.matchID);
+        const configs = meta.players.map((p: any) => ({
+          playerID: String(p.id),
+          username: p.name ?? `Player ${p.id}`,
+          team: (Number(p.id) % 2 === Number(session.playerID) % 2) ? 0 : 1,
+        }));
+        setPlayerConfigs(configs);
+      } catch (err) {
+        console.error("Lobby Fetch Error:", err);
+      }
+    }
+
+    initRoom();
+  }, [session, navigate]);
+
+  if (!session || !playerConfigs) {
+    return <div style={{ color: 'white', padding: '20px' }}>Loading match data...</div>;
+  }
 
   return (
-    <>
-      <style>{`#gameRoomPage header[role="banner"] { margin-bottom: 0 !important; }`}</style>
-      <div
-        id="gameRoomPage"
-        style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}
-      >
-        <PageHeader warnOnLeave />
-        <div style={{ flex: 1, overflow: 'hidden' }}>
-          <DominoClient
-            matchID={session.matchID}
-            playerID={session.playerID}
-            credentials={session.credentials}
-          />
-        </div>
+    <div id="gameRoomPage" style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <PageHeader warnOnLeave />
+      <div style={{ flex: 1 }}>
+        <DominoClient
+          matchID={session.matchID}
+          playerID={session.playerID}
+          credentials={session.credentials}
+          // Pass the ALREADY FETCHED configs here
+          playerConfigs={playerConfigs} 
+        />
       </div>
-    </>
+    </div>
   );
 }
 

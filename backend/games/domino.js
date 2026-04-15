@@ -16,6 +16,15 @@ export const DominoGame = {
     setup: ({ ctx }) => {
         const dominoType = 6;
         const tiles = [];
+        const players = {};
+  
+        // Initialize slots based on the number of players in the match
+        for (let i = 0; i < ctx.numPlayers; i++) {
+            players[i] = {
+                name: "", 
+                connected: false
+            };
+        }
 
         for (let i = 0; i <= dominoType; i++) {
             for (let j = i; j <= dominoType; j++) {
@@ -31,6 +40,7 @@ export const DominoGame = {
         }
 
         return {
+            players,
             graveyard: shuffled,
             hands,
             board: [],
@@ -121,6 +131,26 @@ export const DominoGame = {
             hand.splice(tileIdx, 1);
             G.passCount = 0;
         },
+    },
+
+    onPlayerJoin: (G, ctx, playerID) => {
+        if (ctx.metadata[playerID]) {
+            const playerName = ctx.metadata[playerID].name;
+    
+            if (G.players[playerID]) {
+                G.players[playerID].name = playerName;
+                console.log(`Successfully mapped ${playerName} to slot ${playerID}`);
+            }
+        } else {
+            console.warn(`No metadata found for player ${playerID}.`);
+        }
+    },
+
+    onPlayerLeave: (G, ctx, playerID) => {
+        console.log(`Player ${playerID} left.`);
+        if (G.players[playerID]) {
+            G.players[playerID].connected = false;
+        }
     },
 
     endIf: ({ G, ctx }) => {

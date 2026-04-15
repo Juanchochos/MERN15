@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
+function doLogout(event:any) : void
+{
+	event.preventDefault();
+    sessionStorage.removeItem('user_data');
+    window.location.href = '/';
+};    
+
 function PageHeader({ warnOnLeave = false }: { warnOnLeave?: boolean }) {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const [showInstructions, setShowInstructions] = useState(false);
@@ -37,7 +45,7 @@ function PageHeader({ warnOnLeave = false }: { warnOnLeave?: boolean }) {
 				</div>
 				<div id="exitLink" className="headerUI">
 					<img src="/img/exitIcon.png" id="Icon" alt="Logout Icon" />
-					<a href="/" id="link">Logout</a>
+					<button onClick={doLogout} id="link">Logout</button>
 				</div>
 				<div id="menu" className="headerUIMobile">
 					<button

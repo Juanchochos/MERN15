@@ -16,8 +16,59 @@ import DropZone from './DropZone';
 import { canPlayTile } from '../games/domino-helper';
 import type { DragData, DropData } from '../games/dnd-types';
 import type { PlayerConfig } from '../games/player-types';
+import { buildPath } from './Path';
+import { storeToken, retrieveToken } from '../tokenStorage';
 import { useNavigate } from 'react-router-dom';
 
+
+/**
+ * Updates the match history record in the database.
+ * * @param {String} userId - The user Id of the player who played this game 
+ * * @param {Object[]} players - An array of all participating players.
+ * @param {string}   players[].name - The display name of the player.
+ * * @param {Object[]} winners - An array of the winning players.
+ * @param {string}   winners[].name - The display name of the player.
+ * * @param {Object[]} losers - An array of the losing players.
+ * @param {string}   losers[].name - The display name of the player.
+ ** @param {Date}   timeFinished - DateTime object representing when the game finished.
+ */
+async function updateMatchHistory(userId: String, players: Array<object>, winners: Array<object>, losers: Array<object>, timeFinished: Date){
+  try {
+    const payload = {
+      userId, 
+      players,
+      winners,
+      losers,
+      timeFinished,
+    };
+
+    const response = await fetch(buildPath('/api/add-match-history'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${retrieveToken()}`
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to update match history');
+    }
+
+    if (result.accessToken) {
+      storeToken(result.accessToken);
+    }
+
+    console.log('Match history updated:', result.message);
+
+  } catch (error) {
+    console.error('Error in updateMatchHistory:', error);
+
+    console.error('Could not update Match History');
+  }
+}
 
 interface ExtendedBoardProps extends BoardProps {
   playerConfigs?: PlayerConfig[];
@@ -58,6 +109,32 @@ function Board({
     }
     prevHandLengthRef.current = newLen;
   }, [myHand.length]);
+
+  useEffect(() => {
+    if (!ctx.gameover) return;
+
+    const winner = ctx.gameover.winner;
+    const timeFinished = new Date();
+
+    const players = playerConfigs.length > 0
+      ? playerConfigs.map(p => ({ name: p.username }))
+      : ctx.playOrder.map(id => ({ name: `Player ${id}` }));
+
+    const winners = playerConfigs.length > 0
+      ? playerConfigs.filter(p => p.playerID === winner).map(p => ({ name: p.username }))
+      : [{ name: `Player ${winner}` }];
+
+    const losers = playerConfigs.length > 0
+      ? playerConfigs.filter(p => p.playerID !== winner).map(p => ({ name: p.username }))
+      : ctx.playOrder.filter(id => id !== winner).map(id => ({ name: `Player ${id}` }));
+
+    const user = JSON.parse(sessionStorage.getItem('user_data') || '');
+    const userId = user.id;
+
+    console.log(players, winners, losers, userId, timeFinished);
+    updateMatchHistory(userId, players, winners, losers, timeFinished);
+}, [ctx.gameover]);
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -131,10 +208,10 @@ function Board({
   );
 
   // Split the board into left plays and right plays
-  const centerIdx = G.board.findIndex((e: any) => e.side === 'center');
-  const leftTiles  = G.board.slice(0, centerIdx).reverse(); // played on left end
-  const centerTile = G.board[centerIdx];
-  const rightTiles = G.board.slice(centerIdx + 1);      
+  // const centerIdx = G.board.findIndex((e: any) => e.side === 'center');
+  // const leftTiles  = G.board.slice(0, centerIdx).reverse(); // played on left end
+  // const centerTile = G.board[centerIdx];
+  // const rightTiles = G.board.slice(centerIdx + 1);      
 
   return (
     <DndContext
@@ -198,10 +275,10 @@ function Board({
                   {G.board.map((entry: any, idx: number) => {
                     const isLast = idx === G.board.length - 1;
                     const anim = isLast
-                      ? `${entry.side === 'right' ? 'slideInRight' : 'slideInLeft'} 0.25s ease`
+                      ? `${entry.side === 'left' ? 'slideInLeft' : 'slideInRight'} 0.25s ease`
                       : undefined;
-                    const top_dots = entry.side === 'right' ? entry.domino.top : entry.domino.bottom;
-                    const bottom_dots = entry.side === 'right' ? entry.domino.bottom : entry.domino.top;
+                    const top_dots = entry.side === 'left'  ? entry.domino.bottom: entry.domino.top;
+                    const bottom_dots = entry.side === 'left' ? entry.domino.top: entry.domino.bottom;
                     return (
                       <div key={idx} style={{ animation: anim }}>
                         <DominoTile top={top_dots} bottom={bottom_dots} horizontal />

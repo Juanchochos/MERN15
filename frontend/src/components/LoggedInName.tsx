@@ -2,14 +2,14 @@ function LoggedInName()
 {
     function getCurrentUserName() {
         var data;
-        data = JSON.parse(localStorage.getItem('user_data') || '');
+        data = JSON.parse(sessionStorage.getItem('user_data') || '');
         return data.firstName + ' ' + data.lastName;
     }
     function doLogout(event:any) : void
     {
 	    event.preventDefault();
-        localStorage.removeItem('user_data');
-        window.location.href = '/';
+      sessionStorage.removeItem('user_data');
+      window.location.href = '/';
     };    
 
     return(

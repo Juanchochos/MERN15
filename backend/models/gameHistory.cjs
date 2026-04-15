@@ -1,15 +1,18 @@
 const mongoose = require('mongoose');
 
-const GameSchema = new mongoose.Schema({
-  players: [{
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-  }],
-  winner: {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-  },
-  loser: {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
-  },
+const GameHistorySchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    guid: { type: String, unique: true },
+    players: [{
+        name:   { type: String, required: true }
+    }],
+    winners: [{
+        name:   { type: String, required: true }
+    }],
+    losers: [{
+        name:   { type: String, required: true }
+    }],
+    timeFinished: { type: Date, required: true, expires: '30d'} 
 }, { timestamps: true });
 
 module.exports = mongoose.model('GameHistory', GameHistorySchema);
