@@ -17,24 +17,25 @@ import { canPlayTile } from '../games/domino-helper';
 import type { DragData, DropData } from '../games/dnd-types';
 import type { PlayerConfig } from '../games/player-types';
 import { buildPath } from './Path';
+import { storeToken, retrieveToken } from '../tokenStorage';
+import { useNavigate } from 'react-router-dom';
 
 
 /**
  * Updates the match history record in the database.
+ * * @param {String} userId - The user Id of the player who played this game 
  * * @param {Object[]} players - An array of all participating players.
- * @param {string}   players[].userId - The MongoDB ObjectId of the user.
  * @param {string}   players[].name - The display name of the player.
  * * @param {Object[]} winners - An array of the winning players.
- * @param {string}   winners[].userId - The MongoDB ObjectId of the user.
  * @param {string}   winners[].name - The display name of the player.
  * * @param {Object[]} losers - An array of the losing players.
- * @param {string}   losers[].userId - The MongoDB ObjectId of the user.
  * @param {string}   losers[].name - The display name of the player.
  ** @param {Date}   timeFinished - DateTime object representing when the game finished.
  */
-async function updateMatchHistory(players: Array<object>, winners: Array<object>, losers: Array<object>, timeFinished: Date){
+async function updateMatchHistory(userId: String, players: Array<object>, winners: Array<object>, losers: Array<object>, timeFinished: Date){
   try {
     const payload = {
+      userId, 
       players,
       winners,
       losers,
@@ -45,7 +46,7 @@ async function updateMatchHistory(players: Array<object>, winners: Array<object>
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        'Authorization': `Bearer ${retrieveToken()}`
       },
       body: JSON.stringify(payload),
     });
@@ -57,7 +58,7 @@ async function updateMatchHistory(players: Array<object>, winners: Array<object>
     }
 
     if (result.accessToken) {
-      localStorage.setItem('accessToken', result.accessToken);
+      storeToken(result.accessToken);
     }
 
     console.log('Match history updated:', result.message);
@@ -108,6 +109,32 @@ function Board({
     }
     prevHandLengthRef.current = newLen;
   }, [myHand.length]);
+
+  useEffect(() => {
+    if (!ctx.gameover) return;
+
+    const winner = ctx.gameover.winner;
+    const timeFinished = new Date();
+
+    const players = playerConfigs.length > 0
+      ? playerConfigs.map(p => ({ name: p.username }))
+      : ctx.playOrder.map(id => ({ name: `Player ${id}` }));
+
+    const winners = playerConfigs.length > 0
+      ? playerConfigs.filter(p => p.playerID === winner).map(p => ({ name: p.username }))
+      : [{ name: `Player ${winner}` }];
+
+    const losers = playerConfigs.length > 0
+      ? playerConfigs.filter(p => p.playerID !== winner).map(p => ({ name: p.username }))
+      : ctx.playOrder.filter(id => id !== winner).map(id => ({ name: `Player ${id}` }));
+
+    const user = JSON.parse(sessionStorage.getItem('user_data') || '');
+    const userId = user.id;
+
+    console.log(players, winners, losers, userId, timeFinished);
+    updateMatchHistory(userId, players, winners, losers, timeFinished);
+}, [ctx.gameover]);
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -248,10 +275,10 @@ function Board({
                   {G.board.map((entry: any, idx: number) => {
                     const isLast = idx === G.board.length - 1;
                     const anim = isLast
-                      ? `${entry.side === 'right' ? 'slideInRight' : 'slideInLeft'} 0.25s ease`
+                      ? `${entry.side === 'left' ? 'slideInLeft' : 'slideInRight'} 0.25s ease`
                       : undefined;
-                    const top_dots = entry.side === 'right' ? entry.domino.top : entry.domino.bottom;
-                    const bottom_dots = entry.side === 'right' ? entry.domino.bottom : entry.domino.top;
+                    const top_dots = entry.side === 'left'  ? entry.domino.bottom: entry.domino.top;
+                    const bottom_dots = entry.side === 'left' ? entry.domino.top: entry.domino.bottom;
                     return (
                       <div key={idx} style={{ animation: anim }}>
                         <DominoTile top={top_dots} bottom={bottom_dots} horizontal />

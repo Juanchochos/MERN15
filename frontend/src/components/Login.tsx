@@ -44,7 +44,7 @@ function Login() {
       }
       else {
         var user = { firstName: firstName, lastName: lastName, id: userId }
-        localStorage.setItem('user_data', JSON.stringify(user));
+        sessionStorage.setItem('user_data', JSON.stringify(user));
 
         setMessage('');
         window.location.href = '/main';
