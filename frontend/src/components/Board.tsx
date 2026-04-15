@@ -208,10 +208,10 @@ function Board({
   );
 
   // Split the board into left plays and right plays
-  const centerIdx = G.board.findIndex((e: any) => e.side === 'center');
-  const leftTiles  = G.board.slice(0, centerIdx).reverse(); // played on left end
-  const centerTile = G.board[centerIdx];
-  const rightTiles = G.board.slice(centerIdx + 1);      
+  // const centerIdx = G.board.findIndex((e: any) => e.side === 'center');
+  // const leftTiles  = G.board.slice(0, centerIdx).reverse(); // played on left end
+  // const centerTile = G.board[centerIdx];
+  // const rightTiles = G.board.slice(centerIdx + 1);      
 
   return (
     <DndContext

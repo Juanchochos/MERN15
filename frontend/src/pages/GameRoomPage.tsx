@@ -44,7 +44,6 @@ function GameRoomPage() {
   const navigate = useNavigate();
   const session = location.state as { matchID: string; playerID: string; credentials: string } | null;
 
-  // 1. Create state to hold the actual array of configs
   const [playerConfigs, setPlayerConfigs] = useState<PlayerConfig[] | null>(null);
 
   useEffect(() => {
@@ -53,9 +52,11 @@ function GameRoomPage() {
       return;
     }
 
-    // 2. Fetch data here, safely
     async function initRoom() {
       try {
+        if(!session){
+          return;
+        }
         const meta = await lobby.getMatch(session.matchID);
         const configs = meta.players.map((p: any) => ({
           playerID: String(p.id),
@@ -71,7 +72,6 @@ function GameRoomPage() {
     initRoom();
   }, [session, navigate]);
 
-  // 3. Show a loader until playerConfigs is an ARRAY
   if (!session || !playerConfigs) {
     return <div style={{ color: 'white', padding: '20px' }}>Loading match data...</div>;
   }
