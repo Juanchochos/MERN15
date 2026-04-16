@@ -17,7 +17,7 @@ function Join() {
     setLoading(true);
     setError('');
     try {
-      const userData = localStorage.getItem('user_data');
+      const userData = sessionStorage.getItem('user_data');
       const firstName = userData ? JSON.parse(userData).firstName : 'Player';
 
       const lobby = new Lobby(SERVER);

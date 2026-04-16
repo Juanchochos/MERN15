@@ -57,7 +57,7 @@ async function updateMatchHistory(userId: String, players: Array<object>, winner
       throw new Error(result.error || 'Failed to update match history');
     }
 
-    if (result.accessToken) {
+    if (result.accessToken && result.accessToken !== "undefined") {
       storeToken(result.accessToken);
     }
 

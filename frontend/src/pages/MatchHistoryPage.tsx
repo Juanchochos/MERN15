@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import PageHeader from '../components/PageHeader';
 import MatchHistory from '../components/MatchHistory.tsx';
+import { buildPath } from "../components/Path.tsx";
+import { storeToken, retrieveToken } from "../tokenStorage.tsx";
 
 type MatchRecord = {
   id: string;
@@ -8,6 +10,45 @@ type MatchRecord = {
   opponent: string;
   result: "Win" | "Loss";
 };
+
+
+async function getMatchHistory(): Promise<any> {
+  try {
+    const userData = JSON.parse(sessionStorage.getItem("user_data") || "{}");
+    const userId = userData.id;
+
+    if (!userId) throw new Error("No User ID found in session");
+    const res = await fetch(buildPath(`api/fetch-match-history?userId=${userId}`), {
+      method: 'GET',
+      headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + retrieveToken()
+      }
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.error || `Server error: ${res.status}`);
+    }
+
+    if (result.accessToken) {
+        storeToken(result.accessToken); 
+    }
+
+    return result.data; 
+
+  } catch (error) {
+    console.error("Failed to fetch match history:", error);
+    return []; 
+  }
+}
+
+function getCurrentUserName() {
+    var data;
+    data = JSON.parse(sessionStorage.getItem('user_data') || '');
+    return data.firstName + ' ' + data.lastName;
+}
 
 function convertMatchToRecord(match: any, currentUserName: string): MatchRecord {
   const isWinner = match.winners.some((w: any) => w.name === currentUserName);
@@ -25,12 +66,14 @@ function convertMatchToRecord(match: any, currentUserName: string): MatchRecord 
 
 function MatchHistoryPage() {
   const [history, setHistory] = useState<MatchRecord[]>([]);
-  const currentUserName = "Player Zero"; // Replace with logged-in user
+  const currentUserName = getCurrentUserName();
 
   useEffect(() => {
     async function loadHistory() {
-      const res = await fetch(`/api/history/${currentUserName}`);
-      const matches = await res.json();
+      const matches = await getMatchHistory();
+      if(!matches || matches.length === 0 ){
+        return;
+      }
 
       const converted = matches.map((m: any) =>
         convertMatchToRecord(m, currentUserName)

@@ -10,7 +10,8 @@ type MatchHistoryProps = {
   history: MatchRecord[];
 };
 
-function MatchHistory({ matchID, history }: MatchHistoryProps) {
+
+function MatchHistory({ history }: MatchHistoryProps) {
   // Only show last 5 games
   const lastFive = history.slice(-5).reverse();
 
@@ -22,7 +23,6 @@ function MatchHistory({ matchID, history }: MatchHistoryProps) {
         <div className="lobbyContent">
 
           <div className="playerList">
-            <h2>Last 5 Games</h2>
 
             <ul>
               {lastFive.map((match) => (
