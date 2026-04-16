@@ -8,7 +8,7 @@ function Opponent() {
 		  </div>
       <input type="submit" id="opponent2Button" className="buttons" value="2v2" />
 	  {/* <span id="loginResult">{}</span> */}
-    </div>
+	</div>
   );
 };
 export default Opponent;

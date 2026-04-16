@@ -155,7 +155,7 @@ header {
 	font-family: "Exo", sans-serif !important;
 	font-weight: 200;
     font-size: clamp(5rem, 6vw, 3rem);
-	width: 25%;
+	width: 20%;
 	text-align: center;
     color: #F0DFD3;
 	/*border: 3px solid white;*/
@@ -187,9 +187,12 @@ header {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 10px;
+	gap: clamp(3rem, 6vw, 3rem);
 	width: 90%;
-	margin-top: 20px;
+	margin-top: 30px;
+	@media (max-width: 1024px) {
+	gap: 10px;
+  }
 	/*border: 2px solid blue;*/
 	/*border: 2px solid blue;*/
 }
@@ -206,8 +209,8 @@ header {
 }
 
 #dominoIcon {
-	width: 3vw;
-	max-width: 80px;
+	width: clamp(3rem, 6vw, 3rem);
+	max-width: 3vw;
 	@media (max-width: 1024px) {
 	width: 6vw;
   }
@@ -217,17 +220,10 @@ header {
 }
 
 #dominoIconSmall {
-	width: 1.5vw;
-	max-width: 80px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	@media (max-width: 1024px) {
-	width: 6vw;
-  }
-	height: auto;
-	transform: rotate(45deg);
-	z-index: 2;
+  width: clamp(1.5rem, 2vw, 2.5rem);
+  height: auto;
+  transform: rotate(45deg);
+  z-index: 2;
 }
 
 #titleHeader {

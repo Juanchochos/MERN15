@@ -182,8 +182,8 @@ exports.setApp = function (server, client) {
         return;
       }
 
-      const playerIds = players.map(p => p.userId).sort().join('|');
-      const guid = `${playerIds}-${timeFinished}`;
+      const playerNames = players.map(p => p.name).sort().join('|');
+      const guid = `${playerNames}-${userId}-${timeFinished}`;
 
       const newGame = new GameHistory({
         userId: userId,
@@ -195,8 +195,7 @@ exports.setApp = function (server, client) {
       });
 
       await newGame.validate();
-
-      const saved = await newGame.save();
+      await newGame.save();
 
       ctx.status = 201;
       ctx.body = { 
@@ -220,51 +219,37 @@ exports.setApp = function (server, client) {
           accessToken: ctx.state.refreshedToken
         };
         return;
-      }
+      } 
 
       ctx.status = 500;
       ctx.body = { error: 'Internal server error' };
     }
   });
 
-  server.router.post('/api/fetch-match-history', authenticateToken, koaBody(), async(ctx) => {
-    try{
-      const { userId } = ctx.request.body;
-
-      const games = await GameHistory.find({ "userId": userId }).sort({date: -1}).limit(5);
-
-      if(games && games.length > 0){
-        ctx.status = 200;
-        ctx.body = { 
-          message: 'Succesfully retrieved match history' ,
-          data: games,
-          accessToken: ctx.state.refreshedToken
-        };
+  server.router.get('/api/fetch-match-history', authenticateToken, async(ctx) => {
+      try {
+          const userId = ctx.query.userId; 
+        
+          const games = await GameHistory.find({ "userId": userId })
+              .sort({ date: -1 })
+              .limit(5);
+            
+          if (games && games.length > 0) {
+              ctx.status = 200;
+              ctx.body = {
+                  message: 'Successfully retrieved match history',
+                  data: games,
+                  accessToken: ctx.state.refreshedToken
+              };
+          } else {
+              ctx.status = 200;
+              ctx.body = { message: 'No games found', data: [] };
+          }
+      } catch(e) {
+          console.error("Fetch match history error:", e);
+          ctx.status = 500;
+          ctx.body = { error: 'Internal server error' };
       }
-      
-      else{
-        ctx.status = 200;
-        ctx.body = { message: 'No games found', data: [] };
-      }
-
-    } catch(e){
-      console.error("Register error:", e);
-
-      if (e.name === 'ValidationError') {
-        ctx.status = 400;
-        ctx.body = { error: e.message };
-        return;
-      }
-
-      if (e.code === 11000) {
-        ctx.status = 409;
-        ctx.body = { error: 'Duplicate field value' };
-        return;
-      }
-
-      ctx.status = 500;
-      ctx.body = { error: 'Internal server error' };
-    }
   });
 }
 
