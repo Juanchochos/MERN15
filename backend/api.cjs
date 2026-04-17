@@ -3,9 +3,13 @@ const User = require("./models/user.cjs");
 const Card = require("./models/card.cjs");
 const md5 = require("md5");
 const { koaBody } = require("koa-body");
+const authEmail = require("./services/auth_email.cjs");
+const GameHistory = require("./models/gameHistory.cjs");
+const authenticateToken = require("./middleware/auth.cjs");
 
 
 exports.setApp = function (server, client) {
+  const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
 
   server.router.get('/api/ping', async (ctx) => {
     ctx.status = 200;
@@ -13,27 +17,88 @@ exports.setApp = function (server, client) {
   });
 
   server.router.post('/api/login', koaBody(), async (ctx) => {
-    const { login, password } = ctx.request.body;
-    const hash = md5(password);
+    try {
+      const { login, password } = ctx.request.body || {};
+      const hash = md5(password);
+      const user = await User.findOne({ login: login, password: hash });
 
-    let ret;
+      if (!user) {
+        ctx.status = 200;
+        ctx.body = { error: "Login/Password incorrect" };
+        return;
+      }
 
-    const results = await User.find({ login: login, password: hash });
-
-    if (results.length > 0) {
-      const user = results[0];
+      if (skipEmailVerification) {
+        ctx.status = 200;
+        ctx.body = token.createToken(user.firstName, user.lastName, user._id);
+        return;
+      }
 
       try {
-        ret = token.createToken(user.firstName, user.lastName, user._id);
-      } catch (e) {
-        ret = { error: e.message };
-      }
-    } else {
-      ret = { error: "Login/Password incorrect" };
-    }
+        const code = authEmail.generateVerificationCode();
+        const codeHash = md5(code);
 
-    ctx.status = 200;
-    ctx.body = ret;
+        user.loginVerificationCodeHash = codeHash;
+        user.loginVerificationExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+        await user.save();
+
+        await authEmail.sendEmail(user.email, code);
+
+        ctx.status = 200;
+        ctx.body = { message: "Verification code sent", requiresVerification: true };
+      } catch (e) {
+        ctx.status = 500;
+        ctx.body = { error: e.message };
+      }
+    } catch (e) {
+      console.error("api/login", e);
+      ctx.status = 503;
+      ctx.body = { error: "Database unavailable. Check MongoDB URI and credentials in .env." };
+    }
+  });
+
+  server.router.post('/api/verify-login', koaBody(), async (ctx) => {
+    try {
+      const { login, code } = ctx.request.body || {};
+      const user = await User.findOne({ login: login });
+
+      if (!user) {
+        ctx.status = 404;
+        ctx.body = { error: "User not found" };
+        return;
+      }
+
+      if (!user.loginVerificationCodeHash || !user.loginVerificationExpiresAt) {
+        ctx.status = 400;
+        ctx.body = { error: "No verification code requested" };
+        return;
+      }
+
+      if (user.loginVerificationExpiresAt < new Date()) {
+        user.loginVerificationCodeHash = null;
+        user.loginVerificationExpiresAt = null;
+        await user.save();
+        ctx.status = 400;
+        ctx.body = { error: "Verification code expired" };
+        return;
+      }
+
+      if (md5(code) === user.loginVerificationCodeHash) {
+        const ret = token.createToken(user.firstName, user.lastName, user._id);
+        user.loginVerificationCodeHash = null;
+        user.loginVerificationExpiresAt = null;
+        await user.save();
+        ctx.status = 200;
+        ctx.body = ret;
+      } else {
+        ctx.status = 400;
+        ctx.body = { error: "Invalid verification code" };
+      }
+    } catch (e) {
+      console.error("api/verify-login", e);
+      ctx.status = 503;
+      ctx.body = { error: "Database unavailable. Check MongoDB URI and credentials in .env." };
+    }
   });
 
   server.router.post('/api/register', koaBody(), async (ctx) => {
@@ -56,6 +121,7 @@ exports.setApp = function (server, client) {
         firstName: firstName,
         lastName: lastName,
         email: email,
+        password: hash
       });
 
       const saved = await newUser.save();
@@ -85,53 +151,105 @@ exports.setApp = function (server, client) {
     }
   });
 
-  server.router.post('/api/addcard', koaBody(), async (ctx) => {
-    const { userId, card, jwtToken } = ctx.request.body;
+  server.router.post('/api/add-match-history', authenticateToken, koaBody(), async(ctx) => {
+    try{
 
-    if (token.isExpired(jwtToken)) {
-      ctx.status = 200;
-      ctx.body = { error: 'The JWT is no longer valid', jwtToken: '' };
-      return;
+      const gameTime = new Date();
+
+      const {userId, players, winners, losers, timeFinished} = ctx.request.body;
+
+      if (!players || !Array.isArray(players) || players.length === 0) {
+        ctx.status = 400;
+        ctx.body = { error: 'Players field is required and must be a non-empty array' };
+        return;
+      }
+
+      if (!winners || !Array.isArray(winners) || winners.length === 0) {
+        ctx.status = 400;
+        ctx.body = { error: 'Winners field is required and must be a non-empty array' };
+        return;
+      }
+
+      if (!losers || !Array.isArray(losers) || losers.length === 0) {
+        ctx.status = 400;
+        ctx.body = { error: 'Losers field is required and must be a non-empty array' };
+        return;
+      }
+
+      if (gameTime.now < timeFinished){
+        ctx.status = 400;
+        ctx.body = { error: 'Game time finished not valid.' };
+        return;
+      }
+
+      const playerNames = players.map(p => p.name).sort().join('|');
+      const guid = `${playerNames}-${userId}-${timeFinished}`;
+
+      const newGame = new GameHistory({
+        userId: userId,
+        guid: guid,
+        players: players, 
+        winners: winners,
+        losers: losers,
+        timeFinished: timeFinished
+      });
+
+      await newGame.validate();
+      await newGame.save();
+
+      ctx.status = 201;
+      ctx.body = { 
+        message: 'Added match to match history' ,
+        accessToken: ctx.state.refreshedToken
+      };
+
+    } catch(e){
+      console.error("Register error:", e);
+
+      if (e.name === 'ValidationError') {
+        ctx.status = 400;
+        ctx.body = { error: e.message };
+        return;
+      }
+
+      if (e.code === 11000) {
+        ctx.status = 201;
+        ctx.body = { 
+          message: 'Added match to match history' ,
+          accessToken: ctx.state.refreshedToken
+        };
+        return;
+      } 
+
+      ctx.status = 500;
+      ctx.body = { error: 'Internal server error' };
     }
-
-    let error = '';
-
-    try {
-      const newCard = new Card({ Card: card, UserId: userId });
-      await newCard.save();
-    } catch (e) {
-      error = e.toString();
-    }
-
-    const refreshedToken = token.refresh(jwtToken);
-
-    ctx.status = 201;
-    ctx.body = { error, jwtToken: refreshedToken };
   });
 
-  server.router.post('/api/searchcards', koaBody(), async (ctx) => {
-    const { userId, search, jwtToken } = ctx.request.body;
-
-    if (token.isExpired(jwtToken)) {
-      ctx.status = 200;
-      ctx.body = { error: 'The JWT is no longer valid', jwtToken: '' };
-      return;
-    }
-
-    const _search = search.trim();
-
-    const results = await Card.find({
-      Card: { $regex: _search + '.*', $options: 'i' }
-    });
-
-    const _ret = results.map(r => r.Card);
-
-    const refreshedToken = token.refresh(jwtToken);
-
-    ctx.status = 200;
-    ctx.body = { results: _ret, error: '', jwtToken: refreshedToken };
+  server.router.get('/api/fetch-match-history', authenticateToken, async(ctx) => {
+      try {
+          const userId = ctx.query.userId; 
+        
+          const games = await GameHistory.find({ "userId": userId })
+              .sort({ date: -1 })
+              .limit(5);
+            
+          if (games && games.length > 0) {
+              ctx.status = 200;
+              ctx.body = {
+                  message: 'Successfully retrieved match history',
+                  data: games,
+                  accessToken: ctx.state.refreshedToken
+              };
+          } else {
+              ctx.status = 200;
+              ctx.body = { message: 'No games found', data: [] };
+          }
+      } catch(e) {
+          console.error("Fetch match history error:", e);
+          ctx.status = 500;
+          ctx.body = { error: 'Internal server error' };
+      }
   });
+}
 
-  server.app.use(server.router.routes());
-  server.app.use(server.router.allowedMethods());
-};

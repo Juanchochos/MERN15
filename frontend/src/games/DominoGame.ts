@@ -1,11 +1,14 @@
 import { INVALID_MOVE } from "boardgame.io/core";
-import { DominoTile, shuffle, canPlayDomino, getHandScore } from "./domino-helper";
+import { shuffle, canPlayDomino, getHandScore } from "./domino-helper";
 
+// Game state uses plain objects only — no class instances.
+// boardgame.io serializes G as JSON; class methods are lost in transit.
 
+type Tile = { top: number; bottom: number };
 type Side = "left" | "right" | "center";
 
 interface BoardEntry {
-    domino: DominoTile;
+    domino: Tile;
     side: Side;
 }
 
@@ -15,10 +18,10 @@ interface BoardEnds {
 }
 
 interface GameState {
-    graveyard: DominoTile[]; 
-    hands: Record<string, DominoTile[]>;
+    graveyard: Tile[];
+    hands: Record<string, Tile[]>;
     board: BoardEntry[];
-    boardEnds: BoardEnds; 
+    boardEnds: BoardEnds;
     passCount: number;
 }
 
@@ -26,27 +29,26 @@ export const DominoGame = {
     name: "domino",
     minPlayers: 2,
     maxPlayers: 4,
-    dominoType: 6,
 
     setup: ({ ctx }: { ctx: any }): GameState => {
-        const graveyard: DominoTile[] = [];
+        const dominoType = 6;
+        const tiles: Tile[] = [];
 
-        for (let i = 0; i <= ctx.dominoType; i++) {
-            for (let j = i; j <= ctx.dominoType; j++) { 
-                const tile = new DominoTile(i, j); 
-                graveyard.push(tile);
+        for (let i = 0; i <= dominoType; i++) {
+            for (let j = i; j <= dominoType; j++) {
+                tiles.push({ top: i, bottom: j });
             }
         }
 
-        shuffle(graveyard);
+        const shuffled = shuffle(tiles);
 
-        const hands: Record<string, DominoTile[]> = {};
+        const hands: Record<string, Tile[]> = {};
         for (let i = 0; i < ctx.numPlayers; i++) {
-            hands[i] = graveyard.splice(0, 7);
+            hands[i] = shuffled.splice(0, 7);
         }
 
         return {
-            graveyard,
+            graveyard: shuffled,
             hands,
             board: [],
             boardEnds: { left: null, right: null },
@@ -61,8 +63,8 @@ export const DominoGame = {
     moves: {
         drawTile: ({ G, ctx }: { G: GameState; ctx: any }) => {
             if (G.graveyard.length === 0) return INVALID_MOVE;
-            const tile_drawn = G.graveyard.pop()!;
-            G.hands[ctx.currentPlayer].push(tile_drawn); 
+            const tile = G.graveyard.pop()!;
+            G.hands[ctx.currentPlayer].push(tile);
         },
 
         pass: ({ G, ctx }: { G: GameState; ctx: any }) => {
@@ -75,10 +77,10 @@ export const DominoGame = {
                 return INVALID_MOVE;
             }
             if (G.graveyard.length !== 0) return INVALID_MOVE;
-            G.passCount += 1; 
+            G.passCount += 1;
         },
 
-        playTile: ( 
+        playTile: (
             { G, ctx }: { G: GameState; ctx: any },
             tileIdx: number,
             end_played: Side
@@ -86,62 +88,58 @@ export const DominoGame = {
             const hand = G.hands[ctx.currentPlayer];
             if (tileIdx >= hand.length) return INVALID_MOVE;
 
-            const tile_selected = hand[tileIdx];
+            const tile = hand[tileIdx];
 
-            // First tile placed
+            // First tile placed — always valid
             if (G.board.length === 0) {
-                G.board.push({ domino: tile_selected, side: "center" });
-                G.boardEnds.left = tile_selected.top;   
-                G.boardEnds.right = tile_selected.bottom;
-                G.hands[ctx.currentPlayer].splice(tileIdx, 1);
+                G.board.push({ domino: { ...tile }, side: "center" });
+                G.boardEnds.left = tile.top;
+                G.boardEnds.right = tile.bottom;
+                hand.splice(tileIdx, 1);
+                G.passCount = 0;
                 return;
             }
 
             if (end_played !== "left" && end_played !== "right") return INVALID_MOVE;
 
-            const board_end =
-                end_played === "left" ? G.boardEnds.left : G.boardEnds.right;
-
+            const board_end = end_played === "left" ? G.boardEnds.left : G.boardEnds.right;
             if (board_end === null) return INVALID_MOVE;
-            if (!tile_selected.canPlayEnd(board_end)) return INVALID_MOVE;
 
-            // Orient tile so the matching pip faces the board end
-            if (tile_selected.top !== board_end) {
-                tile_selected.flip();
-            }
+            // Check if tile can match this end
+            if (tile.top !== board_end && tile.bottom !== board_end) return INVALID_MOVE;
 
-            G.board.push({ domino: tile_selected, side: end_played });
+            // Orient so matching pip faces the chain end
+            const oriented: Tile = tile.top === board_end
+                ? { top: tile.top, bottom: tile.bottom }
+                : { top: tile.bottom, bottom: tile.top };
+
+            G.board.push({ domino: oriented, side: end_played });
 
             if (end_played === "left") {
-                G.boardEnds.left = tile_selected.bottom;
+                G.boardEnds.left = oriented.bottom;
             } else {
-                G.boardEnds.right = tile_selected.bottom;
+                G.boardEnds.right = oriented.bottom;
             }
 
-            G.hands[ctx.currentPlayer].splice(tileIdx, 1);
-            G.passCount = 0; // BUG FIX: was `passCount` (undefined variable)
+            hand.splice(tileIdx, 1);
+            G.passCount = 0;
         },
     },
 
-    endIf: ({ G, ctx }: { G: GameState; ctx: any }) => { 
-        // Current player emptied their hand
+    endIf: ({ G, ctx }: { G: GameState; ctx: any }) => {
         if (G.hands[ctx.currentPlayer].length === 0) {
-            return { winner: String(ctx.currentPlayer) }; 
+            return { winner: String(ctx.currentPlayer) };
         }
-
-        // All players passed consecutively → lowest score wins
         if (G.passCount >= ctx.numPlayers) {
             let minScore = Infinity;
             let winnerId = 0;
-
             for (let i = 0; i < ctx.numPlayers; i++) {
-                const playerScore = getHandScore(G.hands[i]); 
-                if (playerScore < minScore) {
-                    minScore = playerScore;
-                    winnerId = i; 
+                const score = getHandScore(G.hands[i]);
+                if (score < minScore) {
+                    minScore = score;
+                    winnerId = i;
                 }
             }
-
             return { winner: String(winnerId) };
         }
     },

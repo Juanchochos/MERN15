@@ -1,13 +1,13 @@
 import PageHeader from '../components/PageHeader.tsx';
 import Create from '../components/CreateGame.tsx';
 
-const CreatePage = () => {
+const MainPage = () => {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div>
       <PageHeader />
       <Create />
     </div>
   );
 };
 
-export default CreatePage;
+export default MainPage;

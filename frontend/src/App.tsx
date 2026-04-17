@@ -4,20 +4,27 @@ import './styles/App.css';
 
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
-import CardPage from './pages/CardPage';
-import CreatePage from './pages/CreatePage';
+import MainPage from './pages/MainPage';
+import GameRoomPage from './pages/GameRoomPage';
+import JoinPage from './pages/JoinPage';
+import LobbyPage from './pages/LobbyPage';
+import MatchHistoryPage from './pages/MatchHistoryPage';
 
 function App() {
   return (
-    <Router >
+    <Router>
       <Routes>
-        <Route path="/" element={<LoginPage/>}/>
-		<Route path="/signup" element={<SignUpPage />} />
-		<Route path="/create" element={<CreatePage />} />
-        <Route path="/cards" element={<CardPage/>}/>
-        <Route path="*" element={<Navigate to="/" replace />}/>
-      </Routes>  
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/main" element={<MainPage />} />
+        <Route path="/Join" element={<JoinPage />} />
+        <Route path="/Lobby" element={<LobbyPage />} />
+        <Route path="/game" element={<GameRoomPage />} />
+        <Route path="/match-history" element={<MatchHistoryPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Router>
   );
 }
+
 export default App;

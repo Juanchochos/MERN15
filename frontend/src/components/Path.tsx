@@ -1,10 +1,27 @@
-const app_name = 'rickymetral.xyz';
+const port = import.meta.env.VITE_BACKEND_PORT || '8000';
+export const SERVER_URL = import.meta.env.DEV
+    ? `http://localhost:${port}`
+    : window.location.origin;
 
 export function buildPath(route: string): string {
-    if (import.meta.env.MODE == 'development') {
-        return 'http://localhost:5000/' + route;
+    const path = route.replace(/^\//, '');
+    const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '');
+
+    if (configuredBase) {
+        return path ? `${configuredBase}/${path}` : configuredBase;
     }
-    else {
-        return 'http://' + app_name +':5000' + route;
+
+    if (import.meta.env.DEV) {
+        // boardgame.io needs an absolute backend URL for Socket.IO in local development.
+        if (!path) {
+            return SERVER_URL;
+        }
+
+        // Vite proxies /api requests to the local backend.
+        return `/${path}`;
     }
+
+    // In production, send requests back to the current site and let the reverse proxy
+    // handle TLS termination and forwarding to the backend service.
+    return path ? `${window.location.origin}/${path}` : window.location.origin;
 }
