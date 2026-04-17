@@ -16,7 +16,7 @@ function PageHeader({ warnOnLeave = false }: { warnOnLeave?: boolean }) {
 	const [leaveDestination, setLeaveDestination] = useState("/main");
 	const navigate = useNavigate();
 
-	function confirmLeave(destination: string) {
+	function confirmLeave(destination: string) {setShowInstructions
 		if (warnOnLeave) {
 			setLeaveDestination(destination);
 			setShowLeaveConfirm(true);
@@ -74,14 +74,16 @@ function PageHeader({ warnOnLeave = false }: { warnOnLeave?: boolean }) {
 		{showInstructions && (
 			<div className="modalOverlay" onClick={() => setShowInstructions(false)}>
 				<div className="modalContent" onClick={e => e.stopPropagation()}>
-					<h2>Instructions</h2>
+					<h2>How to Play</h2>
 					<div className="modalScrollBody">
-						<p>This is where the instructions and info will go.</p>
-						<p>This is where the instructions and info will go.</p>
-						<p>This is where the instructions and info will go.</p>
-						<p>This is where the instructions and info will go.</p>
-						<p>This is where the instructions and info will go.</p>
-						<p>This is where the instructions and info will go.</p>
+						<p>To start the game, the player with the highest double will start.</p>
+						<p>On your turn, you must play a domino that matches the number of dots on one of the open dominos on the board</p>
+						<p>You win the game by being the first person to get rid of all their dominos.</p>
+						<h3>Classic</h3>
+						<p>You may only play one domino per turn.</p>
+						<p>When a player can't play dominoes, they must draw a domino and pass their turn.</p>
+						<p>If no dominoes available, they just pass.</p>
+						<p>There a a total of 28 dominoes when playing 6's so count the dominoes to help against your opponent!</p>
 					</div>
 					<button className="modalButton" onClick={() => setShowInstructions(false)}>Close</button>
 				</div>
