@@ -7,6 +7,7 @@ const Color black = Color.fromARGB(255, 14, 7, 2);
 const Color white = Color.fromARGB(255, 240, 223, 211);
 const Color beige = Color.fromARGB(255, 207, 172, 148);
 const Color green = Color.fromARGB(255, 37, 149, 6);
+const Color green2 = Color.fromARGB(255, 57, 201, 34);
 
 void main() {
   runApp(const MyApp());
@@ -774,66 +775,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  /*final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _loginController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();*/
-  //String _errorMessage = '';
-  //bool _isLoading = false;
-  /*Future<void> _login() async {
-    setState(() {
-      //_isLoading = true;
-      //_errorMessage = '';
-    });
-    /*try {
-      final response = await http.post(
-        Uri.parse('http://rickymetral.xyz:5000/api/signup'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'login': _loginController.text,
-          'firstName': _firstNameController.text,
-          'lastName': _lastNameController.text,
-          'email': _emailController.text,
-          'password': _passwordController.text,
-        }),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['error'] == null || data['error'].isEmpty) {
-          // Login successful, navigate to home page
-          /*if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(
-                  userId: data['id'],
-                  firstName: data['firstName'],
-                  lastName: data['lastName'],
-                ),
-              ),
-            );
-          }
-        } else {
-          setState(() {
-            _errorMessage = data['error'];
-          });*/
-        }
-      } else {
-        setState(() {
-          //_errorMessage = 'Signup failed. Please try again.';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        //_errorMessage = 'Network error. Please check your connection.';
-      });
-    } finally {
-      setState(() {
-        //_isLoading = false;
-      });
-    }*/
-  }*/
   @override
   Widget build(BuildContext context) {
     final ButtonStyle style = ElevatedButton.styleFrom(
@@ -1158,7 +1099,7 @@ class _CreatePageState extends State<CreatePage> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const CreatePage(),
+                                builder: (context) => const LobbyPage(),
                               ),
                             );
                           },
@@ -1346,6 +1287,305 @@ class _JoinPageState extends State<JoinPage> {
                           style: style,
                           child: const Text(
                             'JOIN',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+}
+
+class LobbyPage extends StatefulWidget {
+  const LobbyPage({super.key});
+  @override
+  State<LobbyPage> createState() => _LobbyPageState();
+}
+
+class _LobbyPageState extends State<LobbyPage> {
+  //final TextEditingController _roomCodeController = TextEditingController();
+  String _roomCode = '';
+  String _errorMessage = '';
+  bool _isLoading = false;
+  Future<void> _generateRoomCode() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://rickymetral.xyz:5000/api/create'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['error'] == null || data['error'].isEmpty) {
+          // Room created successfully
+          if (mounted) {
+            _roomCode = data['matchID'];
+          }
+        } else {
+          setState(() {
+            _errorMessage = data['error'];
+          });
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Room creation failed. Please try again.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Network error. Please check your connection.';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+  @override
+  Widget build(BuildContext context) {
+    final ButtonStyle style = ElevatedButton.styleFrom(
+      textStyle: const TextStyle(fontSize: 20),
+      backgroundColor: green,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+    );
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Image.asset("assets/images/domino.png"),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ),
+        title: const Text('DOMINOES', style: TextStyle(color: white)),
+        backgroundColor: black,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: black,
+                ),
+              child: Text('DOMINOES', style: TextStyle(color: white)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                setState(() {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                    builder: (context) => const HomePage(),
+                    ),
+                  );
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.question_mark),
+              title: const Text('Help'),
+              onTap: () {
+                setState(() {
+                  
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.star_rounded),
+              title: const Text('History'),
+              onTap: () {
+                setState(() {
+                  
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout_rounded),
+              title: const Text('Logout'),
+              onTap: () {
+                Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/woodBG.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  color: black,
+                  child: Text(
+                    'MATCH LOBBY',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Divider(height: 5, thickness: 5, color: green),
+                Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/WoodGrain.jpg"),
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 24),
+                        Text(
+                          'Room Code:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        // Change to Room Code
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.7),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _roomCode,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Players in Lobby:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                              'Player',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.left,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '(Host)',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: green2,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.right,
+                            ),
+                            ]
+                            )
+                          /*child: Text(
+                            'Host',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),*/
+                        ),
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '(waiting...)',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const JoinPage(),
+                              ),
+                            );
+                          },
+                          style: style,
+                          child: const Text(
+                            'Waiting for Players...',
                             style: TextStyle(
                               fontSize: 16,
                               color: white,
