@@ -61,7 +61,7 @@ function PageHeader({ warnOnLeave = false }: { warnOnLeave?: boolean }) {
 						<a href="/">Logout</a>
 					  </div>
 					)}
-					<div id="titleHeaderMobile" className="headerUIMobile">
+					<div id="titleHeaderMobile" className="headerUIMobile" onClick={() => confirmLeave("/main")} style={{ cursor: "pointer" }}>
 						<img src="/img/domino.png" id="dominoIconSmall" alt="Domino Icon" />
 						<h1 id="headerTitle">Dominoes</h1>
 					</div>
