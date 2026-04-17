@@ -91,9 +91,7 @@ function Board({
   const [isDragging, setIsDragging] = useState(false);
   const [activeTile, setActiveTile] = useState<{ top: number; bottom: number } | null>(null);
   const [newTileIdx, setNewTileIdx] = useState<number | null>(null);
-  const [highlightedBoardIdx, setHighlightedBoardIdx] = useState<number | null>(null);
   const prevHandLengthRef = useRef(myHand.length);
-  const prevBoardLengthRef = useRef(G.board.length);
 
   useEffect(() => {
     const newLen = myHand.length;
@@ -111,15 +109,6 @@ function Board({
     }
     prevHandLengthRef.current = newLen;
   }, [myHand.length]);
-
-  useEffect(() => {
-    const newBoardLen = G.board.length;
-    if (newBoardLen > prevBoardLengthRef.current) {
-      setHighlightedBoardIdx(newBoardLen - 1);
-      setTimeout(() => setHighlightedBoardIdx(null), 1500);
-    }
-    prevBoardLengthRef.current = newBoardLen;
-  }, [G.board.length]);
 
   useEffect(() => {
     if (!ctx.gameover) return;
@@ -256,70 +245,53 @@ function Board({
 
           {/* Chain + drop zones */}
           <style>{`
-            @keyframes highlightFade {
-              0%   { box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.85), 0 0 16px rgba(255, 215, 0, 0.4); }
-              100% { box-shadow: none; }
-            }
-            @keyframes turnPulse {
-              0%, 100% { opacity: 1; transform: scale(1); }
-              50%       { opacity: 0.75; transform: scale(1.04); }
-            }
+            @keyframes slideInLeft  { from { transform: translateX(-36px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+            @keyframes slideInRight { from { transform: translateX( 36px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
           `}</style>
 
-
-          {/* Scroll container — width:max-content + margin:auto centers when short,
-              scrolls both directions without clipping when the chain is long */}
+          {/* Scroll container */}
           <div style={{ overflowX: 'auto', minHeight: 100, borderRadius: 8 }}>
+            {/* Centering wrapper: fills full width so justify-content centers when chain is short;
+                grows beyond 100% when chain overflows so scroll reveals both ends */}
+            <div style={{ display: 'flex', justifyContent: 'center', minWidth: '100%' }}>
+            {/* Content row: flex-shrink:0 prevents compression; padding adds breathing room */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: 8,
+              flexShrink: 0,
               padding: 16,
-              width: 'max-content',
-              margin: '0 auto',
             }}>
             {boardIsEmpty ? (
+              /* Empty board: single centered drop zone, or hint text */
               isDragging
                 ? <DropZone id="center" data={{ zone: 'CENTER' }} label="PLAY" isActive={true} />
                 : <p style={{ color: '#aaa', margin: 0, fontFamily: '"Exo", sans-serif' }}>Drag a tile here to start</p>
             ) : (
+              /* Board has tiles: left zone · chain · right zone */
               <>
                 <DropZone id="left-end" data={{ zone: 'LEFT_END' }} label="LEFT" isActive={isDragging} />
-                {(() => {
-                  // Reorder board into visual left→right sequence
-                  const boardWithIdx = (G.board as any[]).map((e, i) => ({ ...e, origIdx: i }));
-                  const leftEntries  = boardWithIdx.filter(e => e.side === 'left').reverse();
-                  const centerEntry  = boardWithIdx.find(e => e.side === 'center');
-                  const rightEntries = boardWithIdx.filter(e => e.side === 'right');
-                  const chain = centerEntry ? [...leftEntries, centerEntry, ...rightEntries] : [];
-                  return (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                      {chain.map((entry: any) => {
-                        const isNew    = entry.origIdx === highlightedBoardIdx;
-                        const isDouble = entry.domino.top === entry.domino.bottom;
-                        const top_dots    = entry.side === 'left' ? entry.domino.bottom : entry.domino.top;
-                        const bottom_dots = entry.side === 'left' ? entry.domino.top    : entry.domino.bottom;
-                        return (
-                          <div
-                            key={entry.origIdx}
-                            style={{
-                              display: 'inline-flex',
-                              borderRadius: 6,
-                              animation: isNew ? 'highlightFade 1.5s ease forwards' : undefined,
-                            }}
-                          >
-                            <DominoTile top={top_dots} bottom={bottom_dots} horizontal={!isDouble} />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
+                <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                  {G.board.map((entry: any, idx: number) => {
+                    const isLast = idx === G.board.length - 1;
+                    const anim = isLast
+                      ? `${entry.side === 'left' ? 'slideInLeft' : 'slideInRight'} 0.25s ease`
+                      : undefined;
+                    const top_dots = entry.side === 'left'  ? entry.domino.bottom: entry.domino.top;
+                    const bottom_dots = entry.side === 'left' ? entry.domino.top: entry.domino.bottom;
+                    return (
+                      <div key={idx} style={{ animation: anim }}>
+                        <DominoTile top={top_dots} bottom={bottom_dots} horizontal />
+                      </div>
+                    );
+                  })}
+                </div>
                 <DropZone id="right-end" data={{ zone: 'RIGHT_END' }} label="RIGHT" isActive={isDragging} />
               </>
             )}
-            </div>
-          </div>
+            </div> {/* end content row */}
+            </div> {/* end centering wrapper */}
+          </div> {/* end scroll container */}
 
           {/* Actions — always visible, disabled when not your turn */}
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 12 }}>
@@ -352,24 +324,6 @@ function Board({
             </div>
           )}
         </div>
-
-        {/* ── Your turn banner ── */}
-        {isMyTurn && !ctx.gameover && (
-          <div style={{
-            textAlign: 'center',
-            padding: '5px 0',
-            background: '#259506',
-            color: '#fff',
-            fontFamily: '"Exo", sans-serif',
-            fontWeight: 700,
-            fontSize: 14,
-            letterSpacing: '0.05em',
-            animation: 'turnPulse 1.4s ease-in-out infinite',
-            flexShrink: 0,
-          }}>
-            YOUR TURN
-          </div>
-        )}
 
         {/* ── Bottom: my team ── */}
         <div style={makeHandRowStyle(hasConfigs ? bottomPlayers.length : 1)}>
