@@ -973,6 +973,51 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePageState extends State<CreatePage> {
+  String _roomCode = '';
+  bool _isLoading = false;
+  String _errorMessage = '';
+  Future<void> _generateMatch() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('http://rickymetral.xyz:5000/games/domino/create'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'numPlayers': 2,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        _roomCode = data['matchID'];
+        if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LobbyPage(),
+                  settings: RouteSettings(
+                    arguments: {
+                      'matchID': _roomCode,
+                    },
+                ),
+              ),
+            );
+          }
+      } else {
+        setState(() {
+          //_errorMessage = 'Signup failed. Please try again.';
+          _roomCode = 'Error creating match.';
+        });
+      }
+    }
+      finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+  }
   @override
   Widget build(BuildContext context) {
     final ButtonStyle style = ElevatedButton.styleFrom(
@@ -1095,14 +1140,7 @@ class _CreatePageState extends State<CreatePage> {
                         // Choose Opponents
                         const SizedBox(height: 24),
                         ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LobbyPage(),
-                              ),
-                            );
-                          },
+                          onPressed: _isLoading ? null : _generateMatch,
                           style: style,
                           child: const Text(
                             '1v1',
@@ -1322,44 +1360,9 @@ class LobbyPage extends StatefulWidget {
 
 class _LobbyPageState extends State<LobbyPage> {
   //final TextEditingController _roomCodeController = TextEditingController();
-  String _roomCode = '';
-  String _errorMessage = '';
-  bool _isLoading = false;
-  Future<void> _generateRoomCode() async {
-    try {
-      final response = await http.get(
-        Uri.parse('http://rickymetral.xyz:5000/api/create'),
-        headers: {'Content-Type': 'application/json'},
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['error'] == null || data['error'].isEmpty) {
-          // Room created successfully
-          if (mounted) {
-            _roomCode = data['matchID'];
-          }
-        } else {
-          setState(() {
-            _errorMessage = data['error'];
-          });
-        }
-      } else {
-        setState(() {
-          _errorMessage = 'Room creation failed. Please try again.';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Network error. Please check your connection.';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
   @override
   Widget build(BuildContext context) {
+    final matchCode = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
     final ButtonStyle style = ElevatedButton.styleFrom(
       textStyle: const TextStyle(fontSize: 20),
       backgroundColor: green,
@@ -1496,7 +1499,7 @@ class _LobbyPageState extends State<LobbyPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            _roomCode,
+                            matchCode['matchID'] as String,
                             style: TextStyle(
                               fontSize: 16,
                               color: white,
