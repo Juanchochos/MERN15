@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'dart:convert';
 
 const Color black = Color.fromARGB(255, 14, 7, 2);
@@ -8,6 +11,30 @@ const Color white = Color.fromARGB(255, 240, 223, 211);
 const Color beige = Color.fromARGB(255, 207, 172, 148);
 const Color green = Color.fromARGB(255, 37, 149, 6);
 const Color green2 = Color.fromARGB(255, 57, 201, 34);
+
+class Player {
+  final String userId;
+  final String firstName;
+  final String lastName;
+  bool isHost = false;
+  var playerCredentials;
+
+  Player({
+    required this.userId,
+    required this.firstName,
+    required this.lastName,
+  });
+
+  factory Player.fromJson(Map<String, dynamic> json) {
+    return Player(
+      userId: json['userId'],
+      firstName: json['firstName'],
+      lastName: json['lastName'],
+    );
+  }
+}
+
+Player player = Player(userId: '', firstName: '', lastName: '');
 
 void main() {
   runApp(const MyApp());
@@ -60,6 +87,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   String _errorMessage = '';
   bool _isLoading = false;
+  String accessToken = '';
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
@@ -76,6 +104,10 @@ class _LoginPageState extends State<LoginPage> {
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
+        player = Player.fromJson(decoded);
+        //print("Player ID: ${player.userId}, First Name: ${player.firstName}, Last Name: ${player.lastName}");
+
         if (data['error'] == null || data['error'].isEmpty) {
           // Login successful, navigate to home page
           if (mounted) {
@@ -83,9 +115,6 @@ class _LoginPageState extends State<LoginPage> {
               context,
               MaterialPageRoute(
                 builder: (context) => HomePage(
-                  //userId: data['id'],
-                  //firstName: data['firstName'],
-                  //lastName: data['lastName'],
                 ),
               ),
             );
@@ -347,224 +376,6 @@ class _SignupPageState extends State<SignupPage> {
       });
     }
   }
-
-  /*
-  @override
-  Widget build(BuildContext context) {
-    final ButtonStyle style = ElevatedButton.styleFrom(
-      textStyle: const TextStyle(fontSize: 20),
-      backgroundColor: green,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-    );
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('DOMINOES',
-        style: TextStyle(color: white),
-        ),
-        ),
-        body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/images/woodBG.jpg"),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Signup',
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 40),
-                TextButton( // remove const to allow for navigation
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context, 
-                      MaterialPageRoute(
-                        builder: (context) => const LoginPage()
-                        )
-                        );
-                  }, // Replace with actual signup navigation
-                  child: const Text(
-                    'Need to Log in?',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                TextField(
-                  controller: _loginController,
-                  decoration: const InputDecoration(
-                    labelText: 'Username',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _firstNameController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'First Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _lastNameController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Last Name',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  style: style,
-                  child: _isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text('Signup', style: TextStyle(fontSize: 16)),
-                ),
-                const SizedBox(height: 16),
-                if (_errorMessage.isNotEmpty)
-                  Text(
-                    _errorMessage,
-                    style: const TextStyle(color: Colors.red, fontSize: 14),
-                    textAlign: TextAlign.center,
-                  ),
-              ],
-            ),
-          ),
-        ),
-      )
-    );
-  }
-
-  @override
-  void dispose() {
-    _loginController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-}
-
-
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _loginController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  //String _errorMessage = '';
-  //bool _isLoading = false;
-  Future<void> _login() async {
-    setState(() {
-      //_isLoading = true;
-      //_errorMessage = '';
-    });
-    /*try {
-      final response = await http.post(
-        Uri.parse('http://rickymetral.xyz:5000/api/signup'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'login': _loginController.text,
-          'firstName': _firstNameController.text,
-          'lastName': _lastNameController.text,
-          'email': _emailController.text,
-          'password': _passwordController.text,
-        }),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['error'] == null || data['error'].isEmpty) {
-          // Login successful, navigate to home page
-          /*if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(
-                  userId: data['id'],
-                  firstName: data['firstName'],
-                  lastName: data['lastName'],
-                ),
-              ),
-            );
-          }
-        } else {
-          setState(() {
-            _errorMessage = data['error'];
-          });*/
-        }
-      } else {
-        setState(() {
-          //_errorMessage = 'Signup failed. Please try again.';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        //_errorMessage = 'Network error. Please check your connection.';
-      });
-    } finally {
-      setState(() {
-        //_isLoading = false;
-      });
-    }*/
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('DOMINOES'),
-        ),
-        body:Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Home Page',
-                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-              ]
-            ),
-          ),
-        ),
-      );
-  }*/
   @override
   Widget build(BuildContext context) {
     final ButtonStyle style = ElevatedButton.styleFrom(
@@ -976,6 +787,46 @@ class _CreatePageState extends State<CreatePage> {
   String _roomCode = '';
   bool _isLoading = false;
   String _errorMessage = '';
+  
+  Future<void> _joinMatch() async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://rickymetral.xyz:5000/games/domino/$_roomCode/join'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'playerID': 0, // first player (host)
+          'playerName': player.firstName,
+        }),
+      );
+      if (response.statusCode == 200) {
+        player.playerCredentials = jsonDecode(response.body)['playerCredentials'];
+        if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LobbyPage(),
+                  settings: RouteSettings(
+                    arguments: {
+                      'matchID': _roomCode,
+                    },
+                ),
+              ),
+            );
+          }
+      } else {
+        setState(() {
+          _errorMessage = 'Error joining match. Please check the room code and try again.';
+          //_roomCode = 'Error joining match.';
+        });
+      }
+    }
+      finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+  }
+
   Future<void> _generateMatch() async {
     setState(() {
       _isLoading = true;
@@ -993,24 +844,17 @@ class _CreatePageState extends State<CreatePage> {
         final data = jsonDecode(response.body);
         _roomCode = data['matchID'];
         if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => LobbyPage(),
-                  settings: RouteSettings(
-                    arguments: {
-                      'matchID': _roomCode,
-                    },
-                ),
-              ),
-            );
-          }
+          setState(() {
+            player.isHost = true;
+          });
+          _joinMatch();
       } else {
         setState(() {
           //_errorMessage = 'Signup failed. Please try again.';
           _roomCode = 'Error creating match.';
         });
       }
+    }
     }
       finally {
         setState(() {
@@ -1180,6 +1024,59 @@ class JoinPage extends StatefulWidget {
 
 class _JoinPageState extends State<JoinPage> {
   final TextEditingController _roomCodeController = TextEditingController(); // not hooked up right now
+  String matchID = '';
+  bool _isLoading = false;
+  String _errorMessage = '';
+  Future<void> _joinMatch() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+    try {
+      setState(() {
+        matchID = _roomCodeController.text;
+      });
+      print(matchID);
+      final response = await http.post(
+        Uri.parse('http://rickymetral.xyz:5000/games/domino/$matchID/join'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'playerID': 1,
+          'playerName': player.firstName,
+        }),
+      );
+      if (response.statusCode == 200) {
+        //final data = jsonDecode(response.body);
+        player.playerCredentials = jsonDecode(response.body)['playerCredentials'];
+        if (mounted) {
+          setState(() {
+            player.isHost = false;
+          });
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LobbyPage(),
+                  settings: RouteSettings(
+                    arguments: {
+                      'matchID': _roomCodeController.text,
+                    },
+                ),
+              ),
+            );
+          }
+      } else {
+        setState(() {
+          _errorMessage = 'Error joining match. Please check the room code and try again.';
+        });
+      }
+    }
+      finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ButtonStyle style = ElevatedButton.styleFrom(
@@ -1315,12 +1212,7 @@ class _JoinPageState extends State<JoinPage> {
                         const SizedBox(height: 24),
                         ElevatedButton(
                           onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const JoinPage(),
-                              ),
-                            );
+                            _joinMatch();
                           },
                           style: style,
                           child: const Text(
@@ -1348,6 +1240,7 @@ class _JoinPageState extends State<JoinPage> {
 
   @override
   void dispose() {
+    _roomCodeController.dispose();
     super.dispose();
   }
 }
@@ -1359,10 +1252,144 @@ class LobbyPage extends StatefulWidget {
 }
 
 class _LobbyPageState extends State<LobbyPage> {
+  Timer? timer;
+  String matchID = '';
+  String player0Name = '';
+  String player1Name = '';
+  bool startGame = false;
+  bool isFull = false;
+
+  @override
+  void initState() {
+  super.initState();
+  }
+
+  Future<Map<String, dynamic>> getMatch(String matchID) async {
+    final response = await http.get(
+      Uri.parse('http://rickymetral.xyz:5000/games/domino/$matchID'),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to get match: ${response.body}');
+    }
+
+    final data = jsonDecode(response.body);
+    if(mounted) {
+      setState(() {
+        player0Name = data['players'][0]['name'];
+        if (data['players'].length > 1 && data['players'][1]['name'] != null) {
+          player1Name = data['players'][1]['name'];
+        }
+        if(data['players'][1]['name'] != null) {
+          isFull = true;
+          if(player.isHost) {
+            startGame = true;
+          }
+        } else {
+          isFull = false;
+          startGame = false;
+        }
+      });
+    }
+    //print(data['players']);
+    //print (data['players'][0]['name']);
+
+    return data;
+  }
+
+  Future<void> markStarted(String matchID) async {
+    final response = await http.post(
+      Uri.parse('http://rickymetral.xyz:5000/games/domino/$matchID/update'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'playerID': player.isHost ? 0 : 1,
+        'credentials': player.playerCredentials, // player.playerCredentials,
+        'data': {'started': true},
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update match: ${response.body}');
+    }
+  }
+
+  Future<void> handleStart(String matchID) async {
+    try {
+      markStarted(matchID);
+      if (mounted) {
+          setState(() {
+
+          });
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GamePage(),
+                  settings: RouteSettings(
+                    arguments: {
+                      'matchID': matchID,
+                      'playerID': player.isHost ? 0 : 1,
+                      'credentials': player.playerCredentials,
+                      'numPlayers': 2,
+                    },
+                ),
+              ),
+            );
+          }
+    } catch (error) {
+      print('Error starting game: $error');
+    }
+  }
+
+  Future<void> poll(String matchID) async {
+      await Future.delayed(const Duration(seconds: 2));
+      try {
+        final meta = await getMatch(matchID);
+        if(!player.isHost && meta['players']?[0]?['data']?['started'] == true) {
+          if (mounted) {
+            timer?.cancel();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => GamePage(),
+                    settings: RouteSettings(
+                      arguments: {
+                        'matchID': matchID,
+                        'playerID': player.isHost ? 0 : 1,
+                        'credentials': player.playerCredentials,
+                        'numPlayers': 2,
+                      },
+                  ),
+                ),
+              );
+            }
+        }
+      } catch (error) {
+        print('Error polling match: $error');
+      }
+    }
+
   //final TextEditingController _roomCodeController = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    //print("Player in Lobby: ${player.firstName}");
     final matchCode = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    if(mounted) {
+    setState(() {
+      matchID = matchCode['matchID'] as String;
+    });
+    getMatch(matchID);
+    //initState();r
+  
+  if(matchID.isNotEmpty && mounted) {
+    poll(matchID);
+    timer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) => poll(matchID),
+    );
+
+  }
+
+    }
     final ButtonStyle style = ElevatedButton.styleFrom(
       textStyle: const TextStyle(fontSize: 20),
       backgroundColor: green,
@@ -1398,6 +1425,9 @@ class _LobbyPageState extends State<LobbyPage> {
               title: const Text('Home'),
               onTap: () {
                 setState(() {
+                  // so it doesn't get confused (make sure to add this when leaving the GamePage as well)
+                  player.playerCredentials = null;
+                  player.isHost = false;
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
@@ -1412,6 +1442,8 @@ class _LobbyPageState extends State<LobbyPage> {
               title: const Text('Help'),
               onTap: () {
                 setState(() {
+                  player.playerCredentials = null;
+                  player.isHost = false;
                   
                 });
               },
@@ -1421,6 +1453,8 @@ class _LobbyPageState extends State<LobbyPage> {
               title: const Text('History'),
               onTap: () {
                 setState(() {
+                  player.playerCredentials = null;
+                  player.isHost = false;
                   
                 });
               },
@@ -1429,6 +1463,10 @@ class _LobbyPageState extends State<LobbyPage> {
               leading: const Icon(Icons.logout_rounded),
               title: const Text('Logout'),
               onTap: () {
+                setState(() {
+                  player.playerCredentials = null;
+                  player.isHost = false;
+                });
                 Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
@@ -1529,7 +1567,9 @@ class _LobbyPageState extends State<LobbyPage> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                              'Player',
+                                // If player.isHost is true, print player.firstName here
+                                // If not, get the host's name and place it here
+                              player0Name,
                               style: TextStyle(
                                 fontSize: 16,
                                 color: white,
@@ -1567,7 +1607,10 @@ class _LobbyPageState extends State<LobbyPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            '(waiting...)',
+                            // If player.isHost is false, print player.firstName here
+                            // If not, get the other player's name and place it here. 
+                            // If no other player, print (waiting...)
+                            player1Name.isEmpty ? '(waiting...)' : player1Name,
                             style: TextStyle(
                               fontSize: 16,
                               color: white,
@@ -1578,17 +1621,12 @@ class _LobbyPageState extends State<LobbyPage> {
                         ),
                         const SizedBox(height: 24),
                         ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const JoinPage(),
-                              ),
-                            );
+                          onPressed: !startGame ? null : () {
+                            handleStart(matchCode['matchID'] as String);
                           },
                           style: style,
-                          child: const Text(
-                            'Waiting for Players...',
+                          child: Text(
+                            startGame ? 'Start Game' : 'Waiting for Players...',
                             style: TextStyle(
                               fontSize: 16,
                               color: white,
@@ -1599,6 +1637,155 @@ class _LobbyPageState extends State<LobbyPage> {
                         ),
                         const SizedBox(height: 24),
                       ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+}
+
+class GamePage extends StatefulWidget {
+  const GamePage({super.key});
+  @override
+  State<GamePage> createState() => _GamePageState();
+}
+
+class _GamePageState extends State<GamePage> {
+  String matchID = '';
+  bool _isLoading = false;
+  String _errorMessage = '';
+
+  @override
+  Widget build(BuildContext context) {
+    //final matchID = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final ButtonStyle style = ElevatedButton.styleFrom(
+      textStyle: const TextStyle(fontSize: 20),
+      backgroundColor: green,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+    );
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Image.asset("assets/images/domino.png"),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          ),
+        ),
+        title: const Text('DOMINOES', style: TextStyle(color: white)),
+        backgroundColor: black,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            const DrawerHeader(
+              decoration: BoxDecoration(
+                color: black,
+                ),
+              child: Text('DOMINOES', style: TextStyle(color: white)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Home'),
+              onTap: () {
+                setState(() {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                    builder: (context) => const HomePage(),
+                    ),
+                  );
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.question_mark),
+              title: const Text('Help'),
+              onTap: () {
+                setState(() {
+                  
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.star_rounded),
+              title: const Text('History'),
+              onTap: () {
+                setState(() {
+                  
+                });
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout_rounded),
+              title: const Text('Logout'),
+              onTap: () {
+                Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/woodBG.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  color: black,
+                  child: Text(
+                    'GAME',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Divider(height: 5, thickness: 5, color: green),
+                Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/WoodGrain.jpg"),
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [],
                     ),
                   ),
                 ),
