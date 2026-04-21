@@ -1452,11 +1452,69 @@ class _GamePageState extends State<GamePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: 24),
                         // Opponent's panel
+                        const SizedBox(height: 12),
+                        Text(
+                          'Opponent', // get session information and print opponent's name here
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: white,
+                              fontWeight: FontWeight.bold,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 10.0, // shadow softness
+                                  color: black,
+                                  offset: Offset(-.5, 1.0),
+                                ),
+                              ],
+                              ), 
+                          textAlign: TextAlign.center,
+                          ),
+                        const SizedBox(height: 12),
                       ],
                     ),
                   ),
+                ),
+                // Panel for the game board 
+                Container(
+
+                ),
+                // Buttons above player
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 10,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        // Draw functionality
+                      },
+                      style: style,
+                      child: const Text(
+                        'Draw',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        // Pass functionality
+                      },
+                      style: style,
+                      child: const Text(
+                        'Pass',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
                 ),
                 Container(
                   decoration: BoxDecoration(
@@ -1471,8 +1529,25 @@ class _GamePageState extends State<GamePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const SizedBox(height: 24),
                         // Player's panel
+                        const SizedBox(height: 12),
+                        Text(
+                          player.firstName, 
+                          style: TextStyle(
+                              fontSize: 16,
+                              color: white,
+                              fontWeight: FontWeight.bold,
+                              shadows: [
+                                Shadow(
+                                  blurRadius: 10.0,
+                                  color: black,
+                                  offset: Offset(-.5, 1.0),
+                                ),
+                              ],
+                              ), 
+                          textAlign: TextAlign.center,
+                          ),
+                        const SizedBox(height: 12),
                       ],
                     ),
                   ),
