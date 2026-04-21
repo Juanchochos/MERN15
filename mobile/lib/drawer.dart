@@ -70,6 +70,7 @@ class CustomDrawer extends StatelessWidget {
                         style: TextStyle(fontWeight: FontWeight.bold,)),
                       ),
                     ],
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0), side: BorderSide(color: green2, width: 2.5)),
                     titleTextStyle: TextStyle(
                       color: green2,
                       fontSize: 24,
