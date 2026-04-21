@@ -5,12 +5,37 @@ import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'dart:convert';
+import 'drawer.dart';
+import 'package:provider/provider.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 const Color black = Color.fromARGB(255, 14, 7, 2);
 const Color white = Color.fromARGB(255, 240, 223, 211);
 const Color beige = Color.fromARGB(255, 207, 172, 148);
 const Color green = Color.fromARGB(255, 37, 149, 6);
 const Color green2 = Color.fromARGB(255, 57, 201, 34);
+
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      centerTitle: true,
+      leading: Builder(
+        builder: (context) => IconButton(
+          icon: Image.asset("assets/images/domino.png"),
+          onPressed: () {
+            Scaffold.of(context).openDrawer();
+          },
+        ),
+      ),
+      title: const Text('DOMINOES', style: TextStyle(color: white)),
+      backgroundColor: black,
+    );
+  }
+  
+  @override
+  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+}
 
 class Player {
   final String userId;
@@ -44,7 +69,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+     return MaterialApp(
       title: 'Dominoes',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: black),
@@ -595,86 +620,8 @@ class _HomePageState extends State<HomePage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
     );
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Image.asset("assets/images/domino.png"),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
-        /*IconButton(
-          icon: Image.asset("assets/images/domino.png"),
-          onPressed: () {
-            /*Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            );*/
-            Scaffold.of(context).openDrawer();
-          },
-        ),*/
-        title: const Text('DOMINOES', style: TextStyle(color: white)),
-        backgroundColor: black,
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: black,
-                ),
-              child: Text('DOMINOES', style: TextStyle(color: white)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () {
-                setState(() {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                    ),
-                  );
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.question_mark),
-              title: const Text('Help'),
-              onTap: () {
-                setState(() {
-                  
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.star_rounded),
-              title: const Text('History'),
-              onTap: () {
-                setState(() {
-                  
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded),
-              title: const Text('Logout'),
-              onTap: () {
-                Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginPage(),
-                              ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      appBar: CustomAppBar(),
+      drawer: CustomDrawer(),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -794,7 +741,7 @@ class _CreatePageState extends State<CreatePage> {
         Uri.parse('http://rickymetral.xyz:5000/games/domino/$_roomCode/join'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'playerID': 0, // first player (host)
+          'playerID': "0", // first player (host)
           'playerName': player.firstName,
         }),
       );
@@ -871,76 +818,8 @@ class _CreatePageState extends State<CreatePage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
     );
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Image.asset("assets/images/domino.png"),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
-        title: const Text('DOMINOES', style: TextStyle(color: white)),
-        backgroundColor: black,
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: black,
-                ),
-              child: Text('DOMINOES', style: TextStyle(color: white)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () {
-                setState(() {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                    ),
-                  );
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.question_mark),
-              title: const Text('Help'),
-              onTap: () {
-                setState(() {
-                  
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.star_rounded),
-              title: const Text('History'),
-              onTap: () {
-                setState(() {
-                  
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded),
-              title: const Text('Logout'),
-              onTap: () {
-                Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginPage(),
-                              ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      appBar: CustomAppBar(),
+      drawer: CustomDrawer(),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -1041,7 +920,7 @@ class _JoinPageState extends State<JoinPage> {
         Uri.parse('http://rickymetral.xyz:5000/games/domino/$matchID/join'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'playerID': 1,
+          'playerID': "1",
           'playerName': player.firstName,
         }),
       );
@@ -1086,76 +965,8 @@ class _JoinPageState extends State<JoinPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
     );
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Image.asset("assets/images/domino.png"),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
-        title: const Text('DOMINOES', style: TextStyle(color: white)),
-        backgroundColor: black,
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: black,
-                ),
-              child: Text('DOMINOES', style: TextStyle(color: white)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () {
-                setState(() {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                    ),
-                  );
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.question_mark),
-              title: const Text('Help'),
-              onTap: () {
-                setState(() {
-                  
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.star_rounded),
-              title: const Text('History'),
-              onTap: () {
-                setState(() {
-                  
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded),
-              title: const Text('Logout'),
-              onTap: () {
-                Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginPage(),
-                              ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      appBar: CustomAppBar(),
+      drawer: CustomDrawer(),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -1302,7 +1113,7 @@ class _LobbyPageState extends State<LobbyPage> {
       Uri.parse('http://rickymetral.xyz:5000/games/domino/$matchID/update'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'playerID': player.isHost ? 0 : 1,
+        'playerID': player.isHost ? "0" : "1",
         'credentials': player.playerCredentials, // player.playerCredentials,
         'data': {'started': true},
       }),
@@ -1315,21 +1126,21 @@ class _LobbyPageState extends State<LobbyPage> {
 
   Future<void> handleStart(String matchID) async {
     try {
-      markStarted(matchID);
+      await markStarted(matchID);
+      await Future.delayed(const Duration(seconds: 1));
       if (mounted) {
-          setState(() {
-
-          });
+          //final session = GameSession(credentials: player.playerCredentials, matchID: matchID, playerID: player.isHost ? "0" : "1");
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => GamePage(),
                   settings: RouteSettings(
                     arguments: {
+                      //'session': session,
                       'matchID': matchID,
-                      'playerID': player.isHost ? 0 : 1,
+                      'playerID': player.isHost ? "0" : "1",
                       'credentials': player.playerCredentials,
-                      'numPlayers': 2,
+                      //'numPlayers': 2,
                     },
                 ),
               ),
@@ -1347,6 +1158,7 @@ class _LobbyPageState extends State<LobbyPage> {
         if(!player.isHost && meta['players']?[0]?['data']?['started'] == true) {
           if (mounted) {
             timer?.cancel();
+            //final session = GameSession(credentials: player.playerCredentials, matchID: matchID, playerID: player.isHost ? "0" : "1");
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -1354,7 +1166,7 @@ class _LobbyPageState extends State<LobbyPage> {
                     settings: RouteSettings(
                       arguments: {
                         'matchID': matchID,
-                        'playerID': player.isHost ? 0 : 1,
+                        'playerID': player.isHost ? "0" : "1",
                         'credentials': player.playerCredentials,
                         'numPlayers': 2,
                       },
@@ -1397,87 +1209,8 @@ class _LobbyPageState extends State<LobbyPage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
     );
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Image.asset("assets/images/domino.png"),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
-          ),
-        ),
-        title: const Text('DOMINOES', style: TextStyle(color: white)),
-        backgroundColor: black,
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: black,
-                ),
-              child: Text('DOMINOES', style: TextStyle(color: white)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () {
-                setState(() {
-                  // so it doesn't get confused (make sure to add this when leaving the GamePage as well)
-                  player.playerCredentials = null;
-                  player.isHost = false;
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                    builder: (context) => const HomePage(),
-                    ),
-                  );
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.question_mark),
-              title: const Text('Help'),
-              onTap: () {
-                setState(() {
-                  player.playerCredentials = null;
-                  player.isHost = false;
-                  
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.star_rounded),
-              title: const Text('History'),
-              onTap: () {
-                setState(() {
-                  player.playerCredentials = null;
-                  player.isHost = false;
-                  
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded),
-              title: const Text('Logout'),
-              onTap: () {
-                setState(() {
-                  player.playerCredentials = null;
-                  player.isHost = false;
-                });
-                Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginPage(),
-                              ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      appBar: CustomAppBar(),
+      drawer: CustomDrawer(),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -1661,6 +1394,7 @@ class GamePage extends StatefulWidget {
   State<GamePage> createState() => _GamePageState();
 }
 
+
 class _GamePageState extends State<GamePage> {
   String matchID = '';
   bool _isLoading = false;
@@ -1676,76 +1410,134 @@ class _GamePageState extends State<GamePage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
     );
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Image.asset("assets/images/domino.png"),
-            onPressed: () {
-              Scaffold.of(context).openDrawer();
-            },
+      appBar: CustomAppBar(),
+      drawer: CustomDrawer(),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/woodBG.jpg"),
+            fit: BoxFit.cover,
           ),
         ),
-        title: const Text('DOMINOES', style: TextStyle(color: white)),
-        backgroundColor: black,
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: black,
-                ),
-              child: Text('DOMINOES', style: TextStyle(color: white)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Home'),
-              onTap: () {
-                setState(() {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                    builder: (context) => const HomePage(),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                /*Container(
+                  color: black,
+                  child: Text(
+                    'GAME',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: white,
                     ),
-                  );
-                });
-              },
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Divider(height: 5, thickness: 5, color: green),*/
+                Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/WoodGrain.jpg"),
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 24),
+                        // Opponent's panel
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/WoodGrain.jpg"),
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 24),
+                        // Player's panel
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
-            ListTile(
-              leading: const Icon(Icons.question_mark),
-              title: const Text('Help'),
-              onTap: () {
-                setState(() {
-                  
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.star_rounded),
-              title: const Text('History'),
-              onTap: () {
-                setState(() {
-                  
-                });
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded),
-              title: const Text('Logout'),
-              onTap: () {
-                Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginPage(),
-                              ),
-                );
-              },
-            ),
-          ],
+          ),
         ),
       ),
+    );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+}
+
+class MatchRecord {
+  final String matchID;
+  final String player;
+  final String opponent;
+  final String result;
+
+  MatchRecord({
+    required this.matchID,
+    required this.player,
+    required this.opponent,
+    required this.result,
+  });
+
+  factory MatchRecord.fromJson(Map<String, dynamic> json) {
+    return MatchRecord(
+      matchID: json['matchID'],
+      player: json['player'],
+      opponent: json['opponent'],
+      result: json['result'],
+    );
+  }
+}
+ 
+// Not fully implemented 
+class MatchHistoryPage extends StatefulWidget {
+  const MatchHistoryPage({super.key});
+  @override
+  State<MatchHistoryPage> createState() => _MatchHistoryPageState();
+}
+
+class _MatchHistoryPageState extends State<MatchHistoryPage> {
+  String matchID = '';
+  bool _isLoading = false;
+  String _errorMessage = '';
+
+  @override
+  Widget build(BuildContext context) {
+    //final matchID = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final ButtonStyle style = ElevatedButton.styleFrom(
+      textStyle: const TextStyle(fontSize: 20),
+      backgroundColor: green,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+    );
+    return Scaffold(
+      appBar: CustomAppBar(),
+      drawer: CustomDrawer(),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -1763,7 +1555,7 @@ class _GamePageState extends State<GamePage> {
                 Container(
                   color: black,
                   child: Text(
-                    'GAME',
+                    'MATCH HISTORY',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -1785,7 +1577,12 @@ class _GamePageState extends State<GamePage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [],
+                      children: [
+                        // Join Game
+                        const SizedBox(height: 24),
+                        const SizedBox(height: 24),
+                        const SizedBox(height: 24),
+                      ],
                     ),
                   ),
                 ),
