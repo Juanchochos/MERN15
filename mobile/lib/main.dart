@@ -6,8 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'dart:convert';
 import 'drawer.dart';
-import 'package:provider/provider.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:boardgame_io/boardgame.dart' as bgio;
+//import 'package:provider/provider.dart';
+//import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 const Color black = Color.fromARGB(255, 14, 7, 2);
 const Color white = Color.fromARGB(255, 240, 223, 211);
@@ -731,6 +732,7 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePageState extends State<CreatePage> {
+  bgio.Lobby lobby = bgio.Lobby(Uri.parse('http://rickymetral.xyz:5000'));
   String _roomCode = '';
   bool _isLoading = false;
   String _errorMessage = '';
@@ -779,8 +781,9 @@ class _CreatePageState extends State<CreatePage> {
       _isLoading = true;
       _errorMessage = '';
     });
+    
     try {
-      final response = await http.post(
+      /*final response = await http.post(
         Uri.parse('http://rickymetral.xyz:5000/games/domino/create'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -788,8 +791,10 @@ class _CreatePageState extends State<CreatePage> {
         }),
       );
       if (response.statusCode == 200) {
+        //bgio.MatchData matchData = bgio.MatchData(jsonDecode(response.body));
         final data = jsonDecode(response.body);
         _roomCode = data['matchID'];
+        //_roomCode = matchData.matchID;
         if (mounted) {
           setState(() {
             player.isHost = true;
@@ -802,6 +807,41 @@ class _CreatePageState extends State<CreatePage> {
         });
       }
     }
+    }
+      finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }*/
+      // Causes a Error polling match (NOT?)
+      /*
+      bgio.GameDescription description = bgio.GameDescription('domino', 2);
+      bgio.MatchData matchData = await lobby.createMatch(description);
+      bgio.Game game = matchData.toGame(); // works now
+      print("Match ID: ${matchData.matchID}");
+      print(game.matchID);*/
+      //bgio.MatchData matchData = bgio.MatchData(jsonDecode(response.body));
+      //final data = jsonDecode(response.body);
+      //_roomCode = data['matchID'];
+        if (mounted) {
+          bgio.GameDescription description = bgio.GameDescription('domino', 2);
+          bgio.MatchData matchData = await lobby.createMatch(description);
+          bgio.Game game = matchData.toGame(); // works now
+          print("Match ID: ${matchData.matchID}");
+          print(game.matchID);
+          _roomCode = matchData.matchID;
+          setState(() {
+            player.isHost = true;
+          });
+          _joinMatch();
+    }
+    }
+    catch(e) {
+      setState(() {
+          _errorMessage = e.toString();
+          print(_errorMessage);
+          //_roomCode = 'Error creating match.';
+        });
     }
       finally {
         setState(() {
@@ -1076,6 +1116,7 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 
   Future<Map<String, dynamic>> getMatch(String matchID) async {
+    // Replace with Game pass
     final response = await http.get(
       Uri.parse('http://rickymetral.xyz:5000/games/domino/$matchID'),
     );
@@ -1189,10 +1230,14 @@ class _LobbyPageState extends State<LobbyPage> {
     setState(() {
       matchID = matchCode['matchID'] as String;
     });
-    getMatch(matchID);
+    try {
+      getMatch(matchID);
+    } catch(e) {
+      print(e);
+    }
     //initState();r
   
-  if(matchID.isNotEmpty && mounted) {
+  if(matchID.isNotEmpty && mounted && !player.isHost) {
     poll(matchID);
     timer = Timer.periodic(
       const Duration(seconds: 2),
