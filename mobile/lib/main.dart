@@ -733,122 +733,53 @@ class CreatePage extends StatefulWidget {
 
 class _CreatePageState extends State<CreatePage> {
   bgio.Lobby lobby = bgio.Lobby(Uri.parse('http://rickymetral.xyz:5000'));
-  String _roomCode = '';
+  bgio.Client? client0;
+  //bgio.Client? client1;
+  //String _roomCode = '';
   bool _isLoading = false;
   String _errorMessage = '';
-  
-  Future<void> _joinMatch() async {
-    try {
-      final response = await http.post(
-        Uri.parse('http://rickymetral.xyz:5000/games/domino/$_roomCode/join'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'playerID': "0", // first player (host)
-          'playerName': player.firstName,
-        }),
-      );
-      if (response.statusCode == 200) {
-        player.playerCredentials = jsonDecode(response.body)['playerCredentials'];
-        if (mounted) {
+
+  Future<bgio.Client> _join(bgio.Game game, bgio.MatchData matchData, int index, String name) {
+    return lobby.joinMatch(game, matchData.players[index].id, name: name);
+  }
+
+  void _createMatch() async {
+    bgio.GameDescription description = bgio.GameDescription('domino', 2);
+    bgio.MatchData matchData = await lobby.createMatch(description);
+    bgio.Game game = matchData.toGame(); // works now
+    print(matchData.players);
+
+    bgio.Client client0 = await _join(game, matchData, 0, player.firstName);
+    setState(() {
+      player.isHost = true;
+    });
+    print(matchData.players);
+    //bgio.Client clientO = await _join(game, matchData, 1, 'Player O');
+    //bgio.Client bannerClient = lobby.watchMatch(game);
+
+    setState(() {
+      this.client0 = client0;
+      //this.clientO = clientO;
+      //this.bannerClient = bannerClient;
+    });
+
+    if (mounted) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => LobbyPage(),
                   settings: RouteSettings(
                     arguments: {
-                      'matchID': _roomCode,
+                      //'matchID': game.matchID,
+                      'game' : game,
+                      'matchData' : matchData,
                     },
                 ),
               ),
             );
           }
-      } else {
-        setState(() {
-          _errorMessage = 'Error joining match. Please check the room code and try again.';
-          //_roomCode = 'Error joining match.';
-        });
-      }
-    }
-      finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }
   }
-
-  Future<void> _generateMatch() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = '';
-    });
-    
-    try {
-      /*final response = await http.post(
-        Uri.parse('http://rickymetral.xyz:5000/games/domino/create'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'numPlayers': 2,
-        }),
-      );
-      if (response.statusCode == 200) {
-        //bgio.MatchData matchData = bgio.MatchData(jsonDecode(response.body));
-        final data = jsonDecode(response.body);
-        _roomCode = data['matchID'];
-        //_roomCode = matchData.matchID;
-        if (mounted) {
-          setState(() {
-            player.isHost = true;
-          });
-          _joinMatch();
-      } else {
-        setState(() {
-          //_errorMessage = 'Signup failed. Please try again.';
-          _roomCode = 'Error creating match.';
-        });
-      }
-    }
-    }
-      finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }*/
-      // Causes a Error polling match (NOT?)
-      /*
-      bgio.GameDescription description = bgio.GameDescription('domino', 2);
-      bgio.MatchData matchData = await lobby.createMatch(description);
-      bgio.Game game = matchData.toGame(); // works now
-      print("Match ID: ${matchData.matchID}");
-      print(game.matchID);*/
-      //bgio.MatchData matchData = bgio.MatchData(jsonDecode(response.body));
-      //final data = jsonDecode(response.body);
-      //_roomCode = data['matchID'];
-        if (mounted) {
-          bgio.GameDescription description = bgio.GameDescription('domino', 2);
-          bgio.MatchData matchData = await lobby.createMatch(description);
-          bgio.Game game = matchData.toGame(); // works now
-          print("Match ID: ${matchData.matchID}");
-          print(game.matchID);
-          _roomCode = matchData.matchID;
-          setState(() {
-            player.isHost = true;
-          });
-          _joinMatch();
-    }
-    }
-    catch(e) {
-      setState(() {
-          _errorMessage = e.toString();
-          print(_errorMessage);
-          //_roomCode = 'Error creating match.';
-        });
-    }
-      finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-  }
+  
   @override
   Widget build(BuildContext context) {
     final ButtonStyle style = ElevatedButton.styleFrom(
@@ -903,7 +834,8 @@ class _CreatePageState extends State<CreatePage> {
                         // Choose Opponents
                         const SizedBox(height: 24),
                         ElevatedButton(
-                          onPressed: _isLoading ? null : _generateMatch,
+                          //onPressed: _isLoading ? null : _generateMatch,
+                          onPressed: _isLoading ? null : _createMatch,
                           style: style,
                           child: const Text(
                             '1v1',
@@ -942,32 +874,36 @@ class JoinPage extends StatefulWidget {
 }
 
 class _JoinPageState extends State<JoinPage> {
+  bgio.Lobby lobby = bgio.Lobby(Uri.parse('http://rickymetral.xyz:5000'));
+  bgio.Client? client1;
   final TextEditingController _roomCodeController = TextEditingController(); // not hooked up right now
   String matchID = '';
   bool _isLoading = false;
   String _errorMessage = '';
-  Future<void> _joinMatch() async {
+
+  Future<bgio.Client> _join(bgio.Game game, bgio.MatchData matchData, int index, String name) {
+    return lobby.joinMatch(game, matchData.players[index].id, name: name);
+  }
+
+  void _joinMatch() async {
     setState(() {
-      _isLoading = true;
-      _errorMessage = '';
-    });
-    try {
-      setState(() {
         matchID = _roomCodeController.text;
-      });
-      print(matchID);
-      final response = await http.post(
-        Uri.parse('http://rickymetral.xyz:5000/games/domino/$matchID/join'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'playerID': "1",
-          'playerName': player.firstName,
-        }),
-      );
-      if (response.statusCode == 200) {
-        //final data = jsonDecode(response.body);
-        player.playerCredentials = jsonDecode(response.body)['playerCredentials'];
-        if (mounted) {
+    });
+    final response = await lobby.getMatch('domino', matchID);
+    if(response == null) {
+      _errorMessage = "No room found";
+      return; // throw an error message instead
+    }
+    bgio.MatchData matchData = response; // definitely not null
+    bgio.Game game = matchData.toGame(); // works now
+    
+    bgio.Client client1 = await _join(game, matchData, 1, player.firstName);
+    setState(() {
+      this.client1 = client1;
+      //this.clientO = clientO;
+      //this.bannerClient = bannerClient;
+    });
+    if (mounted) {
           setState(() {
             player.isHost = false;
           });
@@ -977,23 +913,14 @@ class _JoinPageState extends State<JoinPage> {
                 builder: (context) => LobbyPage(),
                   settings: RouteSettings(
                     arguments: {
-                      'matchID': _roomCodeController.text,
+                      //'matchID': _roomCodeController.text,
+                      'game' : game,
+                      'matchData' : matchData,
                     },
                 ),
               ),
             );
           }
-      } else {
-        setState(() {
-          _errorMessage = 'Error joining match. Please check the room code and try again.';
-        });
-      }
-    }
-      finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }
   }
 
   @override
@@ -1104,7 +1031,7 @@ class LobbyPage extends StatefulWidget {
 
 class _LobbyPageState extends State<LobbyPage> {
   Timer? timer;
-  String matchID = '';
+  //String matchID = '';
   String player0Name = '';
   String player1Name = '';
   bool startGame = false;
@@ -1225,23 +1152,22 @@ class _LobbyPageState extends State<LobbyPage> {
   @override
   Widget build(BuildContext context) {
     //print("Player in Lobby: ${player.firstName}");
-    final matchCode = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final match = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    bgio.MatchData matchData = match['matchData'];
+    bgio.Game game = match['game'];
     if(mounted) {
-    setState(() {
-      matchID = matchCode['matchID'] as String;
-    });
     try {
-      getMatch(matchID);
+      getMatch(game.matchID);
     } catch(e) {
       print(e);
     }
     //initState();r
   
-  if(matchID.isNotEmpty && mounted && !player.isHost) {
-    poll(matchID);
+  if(game.matchID.isNotEmpty && mounted && !player.isHost) {
+    poll(game.matchID);
     timer = Timer.periodic(
       const Duration(seconds: 2),
-      (_) => poll(matchID),
+      (_) => poll(game.matchID),
     );
 
   }
@@ -1315,7 +1241,7 @@ class _LobbyPageState extends State<LobbyPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            matchCode['matchID'] as String,
+                            game.matchID,
                             style: TextStyle(
                               fontSize: 16,
                               color: white,
@@ -1400,7 +1326,7 @@ class _LobbyPageState extends State<LobbyPage> {
                         const SizedBox(height: 24),
                         ElevatedButton(
                           onPressed: !startGame ? null : () {
-                            handleStart(matchCode['matchID'] as String);
+                            handleStart(game.matchID);
                           },
                           style: style,
                           child: Text(
@@ -1441,7 +1367,7 @@ class GamePage extends StatefulWidget {
 
 
 class _GamePageState extends State<GamePage> {
-  String matchID = '';
+  //String matchID = '';
   bool _isLoading = false;
   String _errorMessage = '';
 
