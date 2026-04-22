@@ -650,7 +650,8 @@ header {
 	width: 60%;
 }
 
-#loginName, #loginPassword {
+#loginName, #loginPassword, #verificationCode, #resetPassword, #resetPasswordConfirm,
+#signupName, #signupPassword, #signupFirstName, #signupLastName, #signupEmail {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -662,19 +663,64 @@ header {
 	padding: 20px;
 }
 
-#loginName
+#loginName, #signupName, #signupFirstName, #signupLastName, #signupEmail
 {
 	font-size: 30px;
 	@media (max-width: 1024px) {
 		width: 80%;
 	}
 }
-#loginPassword, #verificationCode
+#loginPassword, #verificationCode, #resetPassword, #resetPasswordConfirm, #signupPassword
 {
 	font-size: 30px;
 	@media (max-width: 1024px) {
 		width: 80%;
 	}
+}
+
+#verificationPrompt {
+	width: 85%;
+	font-size: 24px;
+	line-height: 1.4;
+	margin-top: 10px;
+}
+
+#verificationActions {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+}
+
+.wideActionButton {
+	width: 70%;
+	min-height: 56px;
+	font-size: 26px;
+	padding-inline: 12px;
+}
+
+@media (max-width: 1024px) {
+	.wideActionButton {
+		width: 80%;
+		font-size: 24px;
+	}
+}
+
+#forgotPasswordLink {
+	background: none;
+	border: none;
+	color: #259506;
+	cursor: pointer;
+	font-family: "Exo", sans-serif;
+	font-size: 20px;
+	font-weight: 500;
+	margin-bottom: 15px;
+	text-decoration: underline;
+}
+
+#forgotPasswordLink:disabled {
+	cursor: default;
+	opacity: 0.6;
 }
 
 #inner-title {
@@ -740,6 +786,10 @@ a {
 	max-height: 300px;
 	overflow-y: auto;
 	padding-right: 0.5rem;
+}
+
+.modalScrollBody p + p {
+    margin-top: 1rem;
 }
 
 .modalActions {

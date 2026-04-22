@@ -7,7 +7,9 @@
   "type": "module",
   "main": "server.cjs",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "dev": "nodemon ./server.cjs",
+    "start": "node ./server.cjs"
   },
   "dependencies": {
     "@koa/router": "^15.4.0",

@@ -279,9 +279,10 @@ function Board({
                       : undefined;
                     const top_dots = entry.side === 'left'  ? entry.domino.bottom: entry.domino.top;
                     const bottom_dots = entry.side === 'left' ? entry.domino.top: entry.domino.bottom;
+                    const isDouble = entry.domino.top === entry.domino.bottom;
                     return (
                       <div key={idx} style={{ animation: anim }}>
-                        <DominoTile top={top_dots} bottom={bottom_dots} horizontal />
+                        <DominoTile top={top_dots} bottom={bottom_dots} horizontal={!isDouble} />
                       </div>
                     );
                   })}
