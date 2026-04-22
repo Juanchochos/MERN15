@@ -253,7 +253,13 @@ function Board({
           <div style={{ overflowX: 'auto', minHeight: 100, borderRadius: 8 }}>
             {/* Centering wrapper: fills full width so justify-content centers when chain is short;
                 grows beyond 100% when chain overflows so scroll reveals both ends */}
-            <div style={{ display: 'flex', justifyContent: 'center', minWidth: '100%' }}>
+			<div style={{
+				display: 'inline-flex',
+				justifyContent: 'center',
+				width: 'max-content',
+				margin: '0 auto',
+			}}
+			>
             {/* Content row: flex-shrink:0 prevents compression; padding adds breathing room */}
             <div style={{
               display: 'flex',
