@@ -159,6 +159,7 @@ function Board({
       const playedIdx = dragData.handIndex;
       const tile = myHand[playedIdx];
       const end = dropData.zone === 'RIGHT_END' ? 'right' : 'left';
+      console.log(`Domino placed ${end}`, tile);
 
       if (!canPlayTile(tile, G.boardEnds, end, boardIsEmpty)) {
         return;
@@ -244,11 +245,6 @@ function Board({
           )}
 
           {/* Chain + drop zones */}
-          <style>{`
-            @keyframes slideInLeft  { from { transform: translateX(-36px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-            @keyframes slideInRight { from { transform: translateX( 36px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-          `}</style>
-
           {/* Scroll container */}
           <div style={{ overflowX: 'auto', minHeight: 100, borderRadius: 8 }}>
             {/* Centering wrapper: fills full width so justify-content centers when chain is short;
@@ -273,15 +269,11 @@ function Board({
                 <DropZone id="left-end" data={{ zone: 'LEFT_END' }} label="LEFT" isActive={isDragging} />
                 <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                   {G.board.map((entry: any, idx: number) => {
-                    const isLast = idx === G.board.length - 1;
-                    const anim = isLast
-                      ? `${entry.side === 'left' ? 'slideInLeft' : 'slideInRight'} 0.25s ease`
-                      : undefined;
                     const top_dots = entry.side === 'left'  ? entry.domino.bottom: entry.domino.top;
                     const bottom_dots = entry.side === 'left' ? entry.domino.top: entry.domino.bottom;
                     const isDouble = entry.domino.top === entry.domino.bottom;
                     return (
-                      <div key={idx} style={{ animation: anim }}>
+                      <div key={idx}>
                         <DominoTile top={top_dots} bottom={bottom_dots} horizontal={!isDouble} />
                       </div>
                     );
