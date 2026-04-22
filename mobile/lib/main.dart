@@ -33,7 +33,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: black,
     );
   }
-  
+
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }
@@ -70,7 +70,7 @@ class MyApp extends StatelessWidget {
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
-     return MaterialApp(
+    return MaterialApp(
       title: 'Dominoes',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: black),
@@ -139,10 +139,7 @@ class _LoginPageState extends State<LoginPage> {
           if (mounted) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(
-                ),
-              ),
+              MaterialPageRoute(builder: (context) => HomePage()),
             );
           }
         } else {
@@ -402,6 +399,7 @@ class _SignupPageState extends State<SignupPage> {
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final ButtonStyle style = ElevatedButton.styleFrom(
@@ -738,7 +736,12 @@ class _CreatePageState extends State<CreatePage> {
   String _errorMessage = '';
   //bool wasPressed = false;
 
-  Future<bgio.Client> _join(bgio.Game game, bgio.MatchData matchData, int index, String name) {
+  Future<bgio.Client> _join(
+    bgio.Game game,
+    bgio.MatchData matchData,
+    int index,
+    String name,
+  ) {
     return lobby.joinMatch(game, matchData.players[index].id, name: name);
   }
 
@@ -760,32 +763,31 @@ class _CreatePageState extends State<CreatePage> {
     });
 
     try {
-    
-    if (mounted) {
-    setState(() {
-      //wasPressed = true;
-      player.isHost = true;
-    });
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => LobbyPage(),
-                  settings: RouteSettings(
-                    arguments: {
-                      'matchID': matchData.matchID,
-                      'lobby' : lobby,
-                      //'game' : game,
-                      //'matchData' : matchData,
-                    },
-                ),
-              ),
-            );
-          }
-    } catch(e) {
+      if (mounted) {
+        setState(() {
+          //wasPressed = true;
+          player.isHost = true;
+        });
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LobbyPage(),
+            settings: RouteSettings(
+              arguments: {
+                'matchID': matchData.matchID,
+                'lobby': lobby,
+                //'game' : game,
+                //'matchData' : matchData,
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
       _errorMessage = "Lobby is full or does not exist";
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     final ButtonStyle style = ElevatedButton.styleFrom(
@@ -872,7 +874,6 @@ class _CreatePageState extends State<CreatePage> {
   }
 }
 
-
 class JoinPage extends StatefulWidget {
   const JoinPage({super.key});
   @override
@@ -882,58 +883,64 @@ class JoinPage extends StatefulWidget {
 class _JoinPageState extends State<JoinPage> {
   bgio.Lobby lobby = bgio.Lobby(Uri.parse('http://rickymetral.xyz:5000'));
   bgio.Client? client1;
-  final TextEditingController _roomCodeController = TextEditingController(); // not hooked up right now
+  final TextEditingController _roomCodeController =
+      TextEditingController(); // not hooked up right now
   String matchID = '';
   bool _isLoading = false;
   String _errorMessage = '';
   bool wasPressed = false;
 
-  Future<bgio.Client> _join(bgio.Game game, bgio.MatchData matchData, int index, String name) {
+  Future<bgio.Client> _join(
+    bgio.Game game,
+    bgio.MatchData matchData,
+    int index,
+    String name,
+  ) {
     return lobby.joinMatch(game, matchData.players[index].id, name: name);
   }
 
   void _joinMatch() async {
     setState(() {
-        wasPressed = true;
-        matchID = _roomCodeController.text;
+      wasPressed = true;
+      matchID = _roomCodeController.text;
     });
     final response = await lobby.getMatch('domino', matchID);
-    if(response == null) {
+    if (response == null) {
       wasPressed = false;
       _errorMessage = "Lobby is full or does not exist";
       return; // throw an error message instead
     }
     bgio.MatchData matchData = response; // definitely not null
     bgio.Game game = matchData.toGame(); // works now
-    
+
     try {
       bgio.Client client1 = await _join(game, matchData, 1, player.firstName);
-    setState(() {
-      this.client1 = client1;
-    client1.start();
-      player.playerCredentials = client1.credentials;
-    });
-    
-    if (mounted) {
-          setState(() {
-            player.isHost = false;
-          });
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => LobbyPage(),
-                  settings: RouteSettings(
-                    arguments: {
-                      'matchID': _roomCodeController.text,
-                      'lobby' : lobby,
-                      //'game' : game,
-                      //'matchData' : matchData,
-                    },
-                ),
-              ),
-            );
-          }
-    } catch(e) {
+      setState(() {
+        this.client1 = client1;
+        client1.start();
+        player.playerCredentials = client1.credentials;
+      });
+
+      if (mounted) {
+        setState(() {
+          player.isHost = false;
+        });
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LobbyPage(),
+            settings: RouteSettings(
+              arguments: {
+                'matchID': _roomCodeController.text,
+                'lobby': lobby,
+                //'game' : game,
+                //'matchData' : matchData,
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
       _errorMessage = "Lobby is full or does not exist";
     }
   }
@@ -1004,9 +1011,11 @@ class _JoinPageState extends State<JoinPage> {
                         ),
                         const SizedBox(height: 24),
                         ElevatedButton(
-                          onPressed: wasPressed ? null : () {
-                            _joinMatch();
-                          },
+                          onPressed: wasPressed
+                              ? null
+                              : () {
+                                  _joinMatch();
+                                },
                           style: style,
                           child: const Text(
                             'JOIN',
@@ -1054,12 +1063,12 @@ class _LobbyPageState extends State<LobbyPage> {
 
   @override
   void initState() {
-  super.initState();
+    super.initState();
   }
 
   Future<void> markStarted(String matchID) async {
     //lobby.updatePlayer(gameClient, newName)
-    
+
     final response = await http.post(
       Uri.parse('http://rickymetral.xyz:5000/games/domino/$matchID/update'),
       headers: {'Content-Type': 'application/json'},
@@ -1078,118 +1087,117 @@ class _LobbyPageState extends State<LobbyPage> {
   Future<void> handleStart(Map<String, dynamic> match) async {
     try {
       //print(match);
-      print('Match type: ${match.runtimeType}'); // Is this 'List' or '_InternalLinkedHashMap'?
+      print(
+        'Match type: ${match.runtimeType}',
+      ); // Is this 'List' or '_InternalLinkedHashMap'?
       bgio.Lobby lobby = match['lobby'];
       final response = await lobby.getMatch('domino', match['matchID']);
-      if(response == null) {
+      if (response == null) {
         return;
       }
       bgio.MatchData matchData = response;
       await markStarted(matchData.matchID);
       await Future.delayed(const Duration(seconds: 5));
       final response2 = await lobby.getMatch('domino', match['matchID']);
-      if(response2 == null) {
+      if (response2 == null) {
         return;
       }
       matchData = response2;
       bgio.Game game = matchData.toGame();
       //print(matchData.playerCredentials)
       if (mounted && isFull) {
-          //final session = GameSession(credentials: player.playerCredentials, matchID: matchID, playerID: player.isHost ? "0" : "1");
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => GamePage(),
-                  settings: RouteSettings(
-                    arguments: {
-                      //'session': session,
-                      'game': game, 
-                      'matchData': matchData,
-                      'matchID': matchData.matchID,
-                      'playerID': player.isHost ? 0 : 1,
-                      'credentials': player.playerCredentials,
-                      //'numPlayers': 2,
-                    },
-                ),
-              ),
-            );
-          }
+        //final session = GameSession(credentials: player.playerCredentials, matchID: matchID, playerID: player.isHost ? "0" : "1");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => GamePage(),
+            settings: RouteSettings(
+              arguments: {
+                //'session': session,
+                'game': game,
+                'matchData': matchData,
+                'matchID': matchData.matchID,
+                'playerID': player.isHost ? 0 : 1,
+                'credentials': player.playerCredentials,
+                //'numPlayers': 2,
+              },
+            ),
+          ),
+        );
+      }
     } catch (error) {
       print('Error starting game: $error');
     }
   }
 
   Future<void> poll(Map<String, dynamic> match) async {
-      await Future.delayed(const Duration(seconds: 2));
-      try {
-        bgio.MatchData matchData = await match['lobby'].getMatch('domino', match['matchID']);
-        // Setting names
-        if(mounted) {
+    await Future.delayed(const Duration(seconds: 2));
+    try {
+      bgio.MatchData matchData = await match['lobby'].getMatch(
+        'domino',
+        match['matchID'],
+      );
+      // Setting names
+      if (mounted) {
         setState(() {
-        if(matchData.players[0].isSeated) {
+          if (matchData.players[0].isSeated) {
             player0Name = matchData.players[0].name;
-        } else {
-          player0Name = '';
-        }
+          } else {
+            player0Name = '';
+          }
 
-        if(matchData.players[1].isSeated) {
+          if (matchData.players[1].isSeated) {
             player1Name = matchData.players[1].name;
             isFull = true;
-            if(player.isHost) {
+            if (player.isHost) {
               startGame = true;
             }
-        } else {
-          player1Name = '';
-          isFull = false;
-          startGame = false;
-        }
-          
+          } else {
+            player1Name = '';
+            isFull = false;
+            startGame = false;
+          }
         });
-        }
-        bgio.Game game = matchData.toGame();
-        if(!player.isHost && matchData.players[0].isConnected == true) {
-          if (mounted) {
-            timer?.cancel();
-            //final session = GameSession(credentials: player.playerCredentials, matchID: matchID, playerID: player.isHost ? "0" : "1");
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => GamePage(),
-                    settings: RouteSettings(
-                      arguments: {
-                        'game': game, 
-                        'matchData': matchData,
-                        'matchID': matchData.matchID,
-                        'playerID': player.isHost ? "0" : "1",
-                        'credentials': player.playerCredentials,
-                        'numPlayers': 2,
-                      },
-                  ),
-                ),
-              );
-            }
-        }
-      } catch (error) {
-        print('Error polling match: $error');
       }
+      bgio.Game game = matchData.toGame();
+      if (!player.isHost && matchData.players[0].isConnected == true) {
+        if (mounted) {
+          timer?.cancel();
+          //final session = GameSession(credentials: player.playerCredentials, matchID: matchID, playerID: player.isHost ? "0" : "1");
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GamePage(),
+              settings: RouteSettings(
+                arguments: {
+                  'game': game,
+                  'matchData': matchData,
+                  'matchID': matchData.matchID,
+                  'playerID': player.isHost ? "0" : "1",
+                  'credentials': player.playerCredentials,
+                  'numPlayers': 2,
+                },
+              ),
+            ),
+          );
+        }
+      }
+    } catch (error) {
+      print('Error polling match: $error');
     }
+  }
 
   //final TextEditingController _roomCodeController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     //print("Player in Lobby: ${player.firstName}");
-    final match = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    if(mounted) {
-  
-  if(match['matchID'].isNotEmpty && mounted) {
-    poll(match);
-    timer = Timer.periodic(
-      const Duration(seconds: 2),
-      (_) => poll(match),
-    );
-
-  }
-
+    final match =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    if (mounted) {
+      if (match['matchID'].isNotEmpty && mounted) {
+        poll(match);
+        timer = Timer.periodic(const Duration(seconds: 2), (_) => poll(match));
+      }
     }
     final ButtonStyle style = ElevatedButton.styleFrom(
       textStyle: const TextStyle(fontSize: 20),
@@ -1291,26 +1299,26 @@ class _LobbyPageState extends State<LobbyPage> {
                               Text(
                                 // If player.isHost is true, print player.firstName here
                                 // If not, get the host's name and place it here
-                              player0Name.isEmpty ? '...' : player0Name,
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: white,
-                                fontWeight: FontWeight.bold,
+                                player0Name.isEmpty ? '...' : player0Name,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.left,
                               ),
-                              textAlign: TextAlign.left,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '(Host)',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: green2,
-                                fontWeight: FontWeight.bold,
+                              const SizedBox(height: 8),
+                              Text(
+                                '(Host)',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: green2,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.right,
                               ),
-                              textAlign: TextAlign.right,
-                            ),
-                            ]
-                            )
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 24),
                         Container(
@@ -1321,7 +1329,7 @@ class _LobbyPageState extends State<LobbyPage> {
                           ),
                           child: Text(
                             // If player.isHost is false, print player.firstName here
-                            // If not, get the other player's name and place it here. 
+                            // If not, get the other player's name and place it here.
                             // If no other player, print (waiting...)
                             player1Name.isEmpty ? '(waiting...)' : player1Name,
                             style: TextStyle(
@@ -1334,9 +1342,11 @@ class _LobbyPageState extends State<LobbyPage> {
                         ),
                         const SizedBox(height: 24),
                         ElevatedButton(
-                          onPressed: !startGame ? null : () {
-                            handleStart(match);
-                          },
+                          onPressed: !startGame
+                              ? null
+                              : () {
+                                  handleStart(match);
+                                },
                           style: style,
                           child: Text(
                             startGame ? 'Start Game' : 'Waiting for Players...',
@@ -1373,7 +1383,6 @@ class GamePage extends StatefulWidget {
   @override
   State<GamePage> createState() => _GamePageState();
 }
-
 
 class _GamePageState extends State<GamePage> {
   //String matchID = '';
@@ -1437,28 +1446,26 @@ class _GamePageState extends State<GamePage> {
                         Text(
                           'Opponent', // get session information and print opponent's name here
                           style: TextStyle(
-                              fontSize: 16,
-                              color: white,
-                              fontWeight: FontWeight.bold,
-                              shadows: [
-                                Shadow(
-                                  blurRadius: 10.0, // shadow softness
-                                  color: black,
-                                  offset: Offset(-.5, 1.0),
-                                ),
-                              ],
-                              ), 
-                          textAlign: TextAlign.center,
+                            fontSize: 16,
+                            color: white,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 10.0, // shadow softness
+                                color: black,
+                                offset: Offset(-.5, 1.0),
+                              ),
+                            ],
                           ),
+                          textAlign: TextAlign.center,
+                        ),
                         const SizedBox(height: 12),
                       ],
                     ),
                   ),
                 ),
-                // Panel for the game board 
-                Container(
-
-                ),
+                // Panel for the game board
+                Container(),
                 // Buttons above player
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1512,21 +1519,21 @@ class _GamePageState extends State<GamePage> {
                         // Player's panel
                         const SizedBox(height: 12),
                         Text(
-                          player.firstName, 
+                          player.firstName,
                           style: TextStyle(
-                              fontSize: 16,
-                              color: white,
-                              fontWeight: FontWeight.bold,
-                              shadows: [
-                                Shadow(
-                                  blurRadius: 10.0,
-                                  color: black,
-                                  offset: Offset(-.5, 1.0),
-                                ),
-                              ],
-                              ), 
-                          textAlign: TextAlign.center,
+                            fontSize: 16,
+                            color: white,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 10.0,
+                                color: black,
+                                offset: Offset(-.5, 1.0),
+                              ),
+                            ],
                           ),
+                          textAlign: TextAlign.center,
+                        ),
                         const SizedBox(height: 12),
                       ],
                     ),
@@ -1568,8 +1575,8 @@ class MatchRecord {
     );
   }
 }
- 
-// Not fully implemented 
+
+// Not fully implemented
 class MatchHistoryPage extends StatefulWidget {
   const MatchHistoryPage({super.key});
   @override
@@ -1633,7 +1640,7 @@ class _MatchHistoryPageState extends State<MatchHistoryPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Join Game
+                        // Games
                         const SizedBox(height: 24),
                         const SizedBox(height: 24),
                         const SizedBox(height: 24),
