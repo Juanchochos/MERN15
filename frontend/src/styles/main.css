@@ -70,7 +70,7 @@ main {
 
 body {
 	margin: 0;
-    background-image: url("/img/woodBG.jpg");
+    background-image: url("/img/WoodBGAVIF.avif");
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
@@ -392,7 +392,7 @@ header {
 
 	border-radius: 3px;
 
-    background-image: url("/img/WoodGrain.jpg");
+    background-image: url("/img/WoodGrainAVIF.avif");
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
