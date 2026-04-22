@@ -4,7 +4,7 @@ function generateVerificationCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function sendEmail(userEmail, code) {
+async function sendCodeEmail({ userEmail, code, subject, heading, body }) {
     require('dotenv').config();
     const { Resend } = require('resend');
 
@@ -13,11 +13,11 @@ async function sendEmail(userEmail, code) {
     const result = await resend.emails.send({
     from: 'Verification <verify@rickymetral.xyz>',
     to: userEmail,
-    subject: 'Your Dominoes Verification Code',
+    subject: subject,
     html: `
       <div style="font-family: sans-serif; padding: 20px;">
-        <h2>Login Verification</h2>
-        <p>Your one-time passocode is below. It will expire in 5 minutes.</p>
+        <h2>${heading}</h2>
+        <p>${body}</p>
         <h1 style="color: #4A90E2; letter-spacing: 5px;">${code}</h1>
         <p style="font-size: 12px; color: #666;">If you did not request this, please ignore this email.</p>
       </div>
@@ -28,7 +28,28 @@ async function sendEmail(userEmail, code) {
     return result;
 }
 
+async function sendEmail(userEmail, code) {
+    return sendCodeEmail({
+        userEmail,
+        code,
+        subject: 'Your Dominoes Verification Code',
+        heading: 'Login Verification',
+        body: 'Your one-time passcode is below. It will expire in 5 minutes.'
+    });
+}
+
+async function sendPasswordResetEmail(userEmail, code) {
+    return sendCodeEmail({
+        userEmail,
+        code,
+        subject: 'Your Dominoes Password Reset Code',
+        heading: 'Password Reset Verification',
+        body: 'Use this one-time code to verify your account ownership and reset your password. It will expire in 5 minutes.'
+    });
+}
+
 module.exports = {
     generateVerificationCode,
-    sendEmail
+    sendEmail,
+    sendPasswordResetEmail
 };
