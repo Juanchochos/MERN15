@@ -86,10 +86,10 @@ class MyApp extends StatelessWidget {
             fontSize: 32,
             fontWeight: FontWeight.bold,
           ),
-          bodyMedium: TextStyle(color: white, fontSize: 16),
+          bodyMedium: TextStyle(color: white, fontSize: 30),
           bodyLarge: TextStyle(
             color: white,
-            fontSize: 18,
+            fontSize: 28,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -248,6 +248,8 @@ class _LoginPageState extends State<LoginPage> {
                                     style: TextStyle(
                                       color: green,
                                       fontWeight: FontWeight.bold,
+                                      decoration: TextDecoration.underline,
+                                      decorationColor: green,
                                     ),
                                   ),
                                 ],
@@ -308,10 +310,48 @@ class _LoginPageState extends State<LoginPage> {
                             _errorMessage,
                             style: const TextStyle(
                               color: Colors.red,
-                              fontSize: 14,
                             ),
                             textAlign: TextAlign.center,
                           ),
+                        if (_errorMessage.isNotEmpty)
+                        const SizedBox(height: 16),
+                        Align(
+                          alignment: Alignment.center,
+                          child: TextButton(
+                            // remove const to allow for navigation
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const ResetPasswordPage(),
+                                ),
+                              );
+                            },
+                            child: Text.rich(
+                              const TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Forgot Password?',
+                                    style: TextStyle(
+                                      color: green,
+                                      fontWeight: FontWeight.bold,
+                                      decoration: TextDecoration.underline,
+                                      decorationColor: green,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              style: Theme.of(context).textTheme.bodyMedium!
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge!
+                                        .color!
+                                        .withValues(alpha: 0.8),
+                                  ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -331,6 +371,211 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 }
+
+class ResetPasswordPage extends StatefulWidget {
+  const ResetPasswordPage({super.key});
+  @override
+  State<ResetPasswordPage> createState() => _ResetPasswordPageState();
+}
+
+class _ResetPasswordPageState extends State<ResetPasswordPage> {
+  final TextEditingController _loginController = TextEditingController();
+  String _errorMessage = '';
+  bool _isLoading = false;
+  String _message = '';
+  String accessToken = '';
+  Future<void> _sendCode() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('http://rickymetral.xyz:5000/api/request-password-reset'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'login': _loginController.text,
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
+        player = Player.fromJson(decoded);
+        //print("Player ID: ${player.userId}, First Name: ${player.firstName}, Last Name: ${player.lastName}");
+
+        if (data['error'] == null || data['error'].isEmpty) {
+          // Login successful, navigate to home page
+          if (mounted) {
+            _errorMessage = 'Password reset code sent.';
+            /*Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => no()),
+            );*/
+          }
+        } else {
+          setState(() {
+            _errorMessage = data['error'];
+          });
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Unable to send password reset code.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Network error. Please check your connection.';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ButtonStyle style = ElevatedButton.styleFrom(
+      textStyle: const TextStyle(fontSize: 20),
+      backgroundColor: green,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+    );
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
+          },
+          icon: Image.asset("assets/images/domino.png"),
+        ),
+        title: const Text('DOMINOES', style: TextStyle(color: white)),
+        backgroundColor: black,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/woodBG.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  color: black,
+                  child: Text(
+                    'LOG IN',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Divider(height: 5, thickness: 5, color: green),
+                Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/WoodGrain.jpg"),
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 20),
+                        const Text(
+                         'Enter your username and we\'ll email a 6-digit reset code to the address on file.',
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _loginController,
+                          decoration: const InputDecoration(
+                            labelText: 'Username',
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black),
+                            ),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _sendCode,
+                          style: style,
+                          child: _isLoading
+                              ? const CircularProgressIndicator()
+                              : const Text(
+                                  'Send Code',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => LoginPage()),
+                            );
+                          }
+                          ,
+                          style: style,
+                          child: _isLoading
+                              ? const CircularProgressIndicator()
+                              : const Text(
+                                  'Back',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 16),
+                        if (_errorMessage.isNotEmpty)
+                          Text(
+                            _errorMessage,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _loginController.dispose();
+    super.dispose();
+  }
+}
+
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -1464,16 +1709,18 @@ class _GamePageState extends State<GamePage> {
                     ),
                   ),
                 ),
+                Container(
                 // Panel for the game board
-                Container(),
-                // Buttons above player
+
+                ),
                 Row(
+                // Buttons above player
                   mainAxisAlignment: MainAxisAlignment.center,
                   spacing: 10,
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        // Draw functionality
+                        // Insert Draw functionality
                       },
                       style: style,
                       child: const Text(
@@ -1488,7 +1735,7 @@ class _GamePageState extends State<GamePage> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        // Pass functionality
+                        // Insert Pass functionality
                       },
                       style: style,
                       child: const Text(
