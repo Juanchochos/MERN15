@@ -58,7 +58,7 @@ async function updateMatchHistory(userId: String, players: Array<object>, winner
     }
 
     if (result.accessToken && result.accessToken !== "undefined") {
-      storeToken(result.accessToken);
+      storeToken(result);
     }
 
     console.log('Match history updated:', result.message);

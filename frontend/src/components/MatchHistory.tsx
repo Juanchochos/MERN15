@@ -13,7 +13,7 @@ type MatchHistoryProps = {
 
 function MatchHistory({ history }: MatchHistoryProps) {
   // Only show last 5 games
-  const lastFive = history.slice(-5).reverse();
+  const lastFive = history.slice(-5);
 
   return (
     <div id="loginDiv">
