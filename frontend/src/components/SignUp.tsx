@@ -115,7 +115,7 @@ function SignUp() {
       <span id="inner-title">Sign Up</span><br />
 	  <div id="signUpMessage">
 		<p id="signup">Already have an account?</p>
-		<Link to="/main">Log in</Link>
+		<Link to="/">Log in</Link>
 	  </div>
       <input type="text" id="signupName" placeholder="Username"
         onChange={handleSetSignupName} />
