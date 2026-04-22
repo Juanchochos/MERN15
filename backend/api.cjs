@@ -101,6 +101,119 @@ exports.setApp = function (server, client) {
     }
   });
 
+  server.router.post('/api/request-password-reset', koaBody(), async (ctx) => {
+    try {
+      const { login } = ctx.request.body || {};
+      const user = await User.findOne({ login: login });
+
+      if (!user) {
+        ctx.status = 404;
+        ctx.body = { error: "User not found" };
+        return;
+      }
+
+      const code = authEmail.generateVerificationCode();
+      const codeHash = md5(code);
+
+      user.passwordResetCodeHash = codeHash;
+      user.passwordResetExpiresAt = new Date(Date.now() + 5 * 60 * 1000);
+      user.passwordResetVerifiedExpiresAt = null;
+      await user.save();
+
+      await authEmail.sendPasswordResetEmail(user.email, code);
+
+      ctx.status = 200;
+      ctx.body = { message: "Password reset code sent" };
+    } catch (e) {
+      console.error("api/request-password-reset", e);
+      ctx.status = 503;
+      ctx.body = { error: "Unable to process password reset request." };
+    }
+  });
+
+  server.router.post('/api/verify-password-reset', koaBody(), async (ctx) => {
+    try {
+      const { login, code } = ctx.request.body || {};
+      const user = await User.findOne({ login: login });
+
+      if (!user) {
+        ctx.status = 404;
+        ctx.body = { error: "User not found" };
+        return;
+      }
+
+      if (!user.passwordResetCodeHash || !user.passwordResetExpiresAt) {
+        ctx.status = 400;
+        ctx.body = { error: "No password reset requested" };
+        return;
+      }
+
+      if (user.passwordResetExpiresAt < new Date()) {
+        user.passwordResetCodeHash = null;
+        user.passwordResetExpiresAt = null;
+        user.passwordResetVerifiedExpiresAt = null;
+        await user.save();
+        ctx.status = 400;
+        ctx.body = { error: "Password reset code expired" };
+        return;
+      }
+
+      if (md5(code) === user.passwordResetCodeHash) {
+        user.passwordResetCodeHash = null;
+        user.passwordResetExpiresAt = null;
+        user.passwordResetVerifiedExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+        await user.save();
+        ctx.status = 200;
+        ctx.body = { message: "Password reset verified" };
+      } else {
+        ctx.status = 400;
+        ctx.body = { error: "Invalid verification code" };
+      }
+    } catch (e) {
+      console.error("api/verify-password-reset", e);
+      ctx.status = 503;
+      ctx.body = { error: "Unable to verify password reset code." };
+    }
+  });
+
+  server.router.post('/api/reset-password', koaBody(), async (ctx) => {
+    try {
+      const { login, password } = ctx.request.body || {};
+      const user = await User.findOne({ login: login });
+
+      if (!user) {
+        ctx.status = 404;
+        ctx.body = { error: "User not found" };
+        return;
+      }
+
+      if (!user.passwordResetVerifiedExpiresAt) {
+        ctx.status = 400;
+        ctx.body = { error: "Password reset not verified" };
+        return;
+      }
+
+      if (user.passwordResetVerifiedExpiresAt < new Date()) {
+        user.passwordResetVerifiedExpiresAt = null;
+        await user.save();
+        ctx.status = 400;
+        ctx.body = { error: "Password reset verification expired" };
+        return;
+      }
+
+      user.password = md5(password);
+      user.passwordResetVerifiedExpiresAt = null;
+      await user.save();
+
+      ctx.status = 200;
+      ctx.body = { message: "Password reset successful" };
+    } catch (e) {
+      console.error("api/reset-password", e);
+      ctx.status = 503;
+      ctx.body = { error: "Unable to reset password." };
+    }
+  });
+
   server.router.post('/api/register', koaBody(), async (ctx) => {
     const { login, password, firstName, lastName, email } = ctx.request.body;
 
@@ -252,4 +365,3 @@ exports.setApp = function (server, client) {
       }
   });
 }
-
