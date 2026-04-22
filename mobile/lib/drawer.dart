@@ -102,12 +102,11 @@ class CustomDrawer extends StatelessWidget {
             leading: const Icon(Icons.logout_rounded),
             title: const Text('Logout'),
             onTap: () {
-              Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginPage(),
-                            ),
-              );
+              Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                      builder: (_) => MyApp(),
+                  ),
+                );
             },
           ),
         ],

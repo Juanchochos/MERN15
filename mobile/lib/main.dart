@@ -382,7 +382,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final TextEditingController _loginController = TextEditingController();
   String _errorMessage = '';
   bool _isLoading = false;
-  String _message = '';
+  //String _message = '';
   String accessToken = '';
   Future<void> _sendCode() async {
     setState(() {
