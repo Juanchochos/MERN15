@@ -749,10 +749,6 @@ class _CreatePageState extends State<CreatePage> {
     //rint(matchData.players);
 
     bgio.Client client0 = await _join(game, matchData, 0, player.firstName);
-    setState(() {
-      //wasPressed = true;
-      player.isHost = true;
-    });
     //print(matchData.players);
     //bgio.Client clientO = await _join(game, matchData, 1, 'Player O');
     //bgio.Client bannerClient = lobby.watchMatch(game);
@@ -760,26 +756,16 @@ class _CreatePageState extends State<CreatePage> {
     setState(() {
       this.client0 = client0;
       client0.start();
+      player.playerCredentials = client0.credentials;
     });
 
     try {
-    /*client0.start();
-    await Future.delayed(Duration(seconds: 5)); // why does it only work with 5 seconds
-    final response = await lobby.getMatch('domino', matchData.matchID);
-    if(response == null) {
-      wasPressed = false;
-      _errorMessage = "Lobby is full or does not exist";
-      return; // throw an error message instead
-    }
-    setState(() {
-      matchData = response; // definitely not null
-      //print(matchData);
-    });*/
     
     if (mounted) {
-          setState(() {
-            player.isHost = false;
-          });
+    setState(() {
+      //wasPressed = true;
+      player.isHost = true;
+    });
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -924,19 +910,9 @@ class _JoinPageState extends State<JoinPage> {
       bgio.Client client1 = await _join(game, matchData, 1, player.firstName);
     setState(() {
       this.client1 = client1;
-    });
     client1.start();
-    /*await Future.delayed(Duration(seconds: 5)); // why does it only work with 5 seconds
-    final response2 = await lobby.getMatch('domino', matchID);
-    if(response2 == null) {
-      wasPressed = false;
-      _errorMessage = "Lobby is full or does not exist";
-      return; // throw an error message instead
-    }
-    setState(() {
-      matchData = response2; // definitely not null
-      //print(matchData);
-    });*/
+      player.playerCredentials = client1.credentials;
+    });
     
     if (mounted) {
           setState(() {
@@ -1081,41 +1057,9 @@ class _LobbyPageState extends State<LobbyPage> {
   super.initState();
   }
 
-  /*Future<Map<String, dynamic>> getMatch(String matchID) async {
-    // Replace with Game pass
-    final response = await http.get(
-      Uri.parse('http://rickymetral.xyz:5000/games/domino/$matchID'),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Failed to get match: ${response.body}');
-    }
-
-    final data = jsonDecode(response.body);
-    if(mounted) {
-      setState(() {
-        player0Name = data['players'][0]['name'];
-        if (data['players'].length > 1 && data['players'][1]['name'] != null) {
-          player1Name = data['players'][1]['name'];
-        }
-        if(data['players'][1]['name'] != null) {
-          isFull = true;
-          if(player.isHost) {
-            startGame = true;
-          }
-        } else {
-          isFull = false;
-          startGame = false;
-        }
-      });
-    }
-    //print(data['players']);
-    //print (data['players'][0]['name']);
-
-    return data;
-  }*/
-
   Future<void> markStarted(String matchID) async {
+    //lobby.updatePlayer(gameClient, newName)
+    
     final response = await http.post(
       Uri.parse('http://rickymetral.xyz:5000/games/domino/$matchID/update'),
       headers: {'Content-Type': 'application/json'},
@@ -1131,11 +1075,26 @@ class _LobbyPageState extends State<LobbyPage> {
     }
   }
 
-  Future<void> handleStart(String matchID) async {
+  Future<void> handleStart(Map<String, dynamic> match) async {
     try {
-      await markStarted(matchID);
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) {
+      //print(match);
+      print('Match type: ${match.runtimeType}'); // Is this 'List' or '_InternalLinkedHashMap'?
+      bgio.Lobby lobby = match['lobby'];
+      final response = await lobby.getMatch('domino', match['matchID']);
+      if(response == null) {
+        return;
+      }
+      bgio.MatchData matchData = response;
+      await markStarted(matchData.matchID);
+      await Future.delayed(const Duration(seconds: 5));
+      final response2 = await lobby.getMatch('domino', match['matchID']);
+      if(response2 == null) {
+        return;
+      }
+      matchData = response2;
+      bgio.Game game = matchData.toGame();
+      //print(matchData.playerCredentials)
+      if (mounted && isFull) {
           //final session = GameSession(credentials: player.playerCredentials, matchID: matchID, playerID: player.isHost ? "0" : "1");
             Navigator.pushReplacement(
               context,
@@ -1144,8 +1103,10 @@ class _LobbyPageState extends State<LobbyPage> {
                   settings: RouteSettings(
                     arguments: {
                       //'session': session,
-                      'matchID': matchID,
-                      'playerID': player.isHost ? "0" : "1",
+                      'game': game, 
+                      'matchData': matchData,
+                      'matchID': matchData.matchID,
+                      'playerID': player.isHost ? 0 : 1,
                       'credentials': player.playerCredentials,
                       //'numPlayers': 2,
                     },
@@ -1158,23 +1119,35 @@ class _LobbyPageState extends State<LobbyPage> {
     }
   }
 
-  Future<void> poll(match) async {
+  Future<void> poll(Map<String, dynamic> match) async {
       await Future.delayed(const Duration(seconds: 2));
       try {
         bgio.MatchData matchData = await match['lobby'].getMatch('domino', match['matchID']);
+        // Setting names
+        if(mounted) {
+        setState(() {
         if(matchData.players[0].isSeated) {
-          setState(() {
             player0Name = matchData.players[0].name;
-          });
-        } 
+        } else {
+          player0Name = '';
+        }
+
         if(matchData.players[1].isSeated) {
-          setState(() {
             player1Name = matchData.players[1].name;
-          });
-        } 
-        //final meta = match['matchData'];
-        print(matchData);
-        /*if(!player.isHost && meta['players']?[0]?['data']?['started'] == true) {
+            isFull = true;
+            if(player.isHost) {
+              startGame = true;
+            }
+        } else {
+          player1Name = '';
+          isFull = false;
+          startGame = false;
+        }
+          
+        });
+        }
+        bgio.Game game = matchData.toGame();
+        if(!player.isHost && matchData.players[0].isConnected == true) {
           if (mounted) {
             timer?.cancel();
             //final session = GameSession(credentials: player.playerCredentials, matchID: matchID, playerID: player.isHost ? "0" : "1");
@@ -1184,7 +1157,9 @@ class _LobbyPageState extends State<LobbyPage> {
                   builder: (context) => GamePage(),
                     settings: RouteSettings(
                       arguments: {
-                        'matchID': matchID,
+                        'game': game, 
+                        'matchData': matchData,
+                        'matchID': matchData.matchID,
                         'playerID': player.isHost ? "0" : "1",
                         'credentials': player.playerCredentials,
                         'numPlayers': 2,
@@ -1193,7 +1168,7 @@ class _LobbyPageState extends State<LobbyPage> {
                 ),
               );
             }
-        }*/
+        }
       } catch (error) {
         print('Error polling match: $error');
       }
@@ -1204,20 +1179,9 @@ class _LobbyPageState extends State<LobbyPage> {
   Widget build(BuildContext context) {
     //print("Player in Lobby: ${player.firstName}");
     final match = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    
-    //bgio.MatchData matchData = response; // definitely not null
-    //bgio.Game game = matchData.toGame(); // works now
-    //bgio.MatchData matchData = match['matchData'];
-    //bgio.Game game = match['game'];
     if(mounted) {
-    try {
-      //getMatch(game.matchID);
-    } catch(e) {
-      print(e);
-    }
-    //initState();r
   
-  if(match['matchID'].isNotEmpty && mounted && !player.isHost) {
+  if(match['matchID'].isNotEmpty && mounted) {
     poll(match);
     timer = Timer.periodic(
       const Duration(seconds: 2),
@@ -1347,15 +1311,6 @@ class _LobbyPageState extends State<LobbyPage> {
                             ),
                             ]
                             )
-                          /*child: Text(
-                            'Host',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),*/
                         ),
                         const SizedBox(height: 24),
                         Container(
@@ -1380,7 +1335,7 @@ class _LobbyPageState extends State<LobbyPage> {
                         const SizedBox(height: 24),
                         ElevatedButton(
                           onPressed: !startGame ? null : () {
-                            handleStart(match['matchID']);
+                            handleStart(match);
                           },
                           style: style,
                           child: Text(
