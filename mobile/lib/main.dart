@@ -7,6 +7,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'dart:convert';
 import 'drawer.dart';
 import 'package:boardgame_io/boardgame.dart' as bgio;
+import 'Board.dart';
 //import 'package:provider/provider.dart';
 //import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -62,6 +63,9 @@ class Player {
 
 Player player = Player(userId: '', firstName: '', lastName: '');
 
+bgio.Client? client;
+bgio.ClientContext? _ctx;
+
 void main() {
   runApp(const MyApp());
 }
@@ -111,6 +115,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _loginController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  String _verificationMessage = '';
   String _errorMessage = '';
   bool _isLoading = false;
   String accessToken = '';
@@ -130,7 +135,17 @@ class _LoginPageState extends State<LoginPage> {
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
+        if (data['error'] == null || data['error'].isEmpty) {
+        _verificationMessage = data['message'];
+          // Verification code sent
+          if(mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => CodeVerificationPage(login: _loginController.text)),
+            );
+          }
+        }
+        /*Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
         player = Player.fromJson(decoded);
         //print("Player ID: ${player.userId}, First Name: ${player.firstName}, Last Name: ${player.lastName}");
 
@@ -146,7 +161,7 @@ class _LoginPageState extends State<LoginPage> {
           setState(() {
             _errorMessage = data['error'];
           });
-        }
+        }*/
       } else {
         setState(() {
           _errorMessage = 'Login failed. Please try again.';
@@ -368,6 +383,198 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _loginController.dispose();
     _passwordController.dispose();
+    super.dispose();
+  }
+}
+
+class CodeVerificationPage extends StatefulWidget {
+  final String login;
+  const CodeVerificationPage({
+    super.key,
+    required this.login,
+    });
+  @override
+  State<CodeVerificationPage> createState() => _CodeVerificationPage();
+}
+
+class _CodeVerificationPage extends State<CodeVerificationPage> {
+  final TextEditingController _codeController = TextEditingController();
+  String _errorMessage = '';
+  bool _isLoading = false;
+  String accessToken = '';
+
+  Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+    try {
+      print(widget.login);
+      print(_codeController.text);
+      final response = await http.post(
+        Uri.parse('http://rickymetral.xyz:5000/api/verify-login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'login': widget.login,
+          'code': _codeController.text,
+        }),
+      );
+        final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
+        player = Player.fromJson(decoded);
+        //print("Player ID: ${player.userId}, First Name: ${player.firstName}, Last Name: ${player.lastName}");
+
+        if (data['error'] == null || data['error'].isEmpty) {
+          // Login successful, navigate to home page
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
+          }
+        } else {
+          setState(() {
+            _errorMessage = data['error'];
+          });
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Wrong code entered. Please try again.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Network error. Please check your connection.';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ButtonStyle style = ElevatedButton.styleFrom(
+      textStyle: const TextStyle(fontSize: 20),
+      backgroundColor: green,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+    );
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            );
+          },
+          icon: Image.asset("assets/images/domino.png"),
+        ),
+        title: const Text('DOMINOES', style: TextStyle(color: white)),
+        backgroundColor: black,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/woodBG.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  color: black,
+                  child: Text(
+                    'LOG IN',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Divider(height: 5, thickness: 5, color: green),
+                Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/WoodGrain.jpg"),
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 20),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                                'Enter the 6-digit code we emailed to you.',
+                              ),
+                          ),
+
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _codeController,
+                          decoration: InputDecoration(
+                            labelText: 'Verification Code',
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black),
+                            ),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _login,
+                          style: style,
+                          child: _isLoading
+                              ? const CircularProgressIndicator()
+                              : const Text(
+                                  'Verify Code',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 16),
+                        if (_errorMessage.isNotEmpty)
+                          Text(
+                            _errorMessage,
+                            style: const TextStyle(
+                              color: Colors.red,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _codeController.dispose();
     super.dispose();
   }
 }
@@ -976,7 +1183,8 @@ class CreatePage extends StatefulWidget {
 
 class _CreatePageState extends State<CreatePage> {
   bgio.Lobby lobby = bgio.Lobby(Uri.parse('http://rickymetral.xyz:5000'));
-  bgio.Client? client0;
+
+
   bool _isLoading = false;
   String _errorMessage = '';
   //bool wasPressed = false;
@@ -1002,9 +1210,10 @@ class _CreatePageState extends State<CreatePage> {
     //bgio.Client bannerClient = lobby.watchMatch(game);
 
     setState(() {
-      this.client0 = client0;
-      client0.start();
-      player.playerCredentials = client0.credentials;
+      client = client0;
+      client?.subscribe(_update);
+      client?.start();
+      player.playerCredentials = client?.credentials;
     });
 
     try {
@@ -1032,6 +1241,19 @@ class _CreatePageState extends State<CreatePage> {
       _errorMessage = "Lobby is full or does not exist";
     }
   }
+  
+  void _update(Map<String, dynamic> G, bgio.ClientContext ctx) {
+    setState(() {
+      //_isPlaying = !ctx.isGameOver && ctx.currentPlayer == widget.client.playerID;
+      _ctx = ctx;
+      // graveyard G['graveyard']
+      // hand G['hands']
+      // board G['board']
+      // boardEnds G'boardEnds
+      // passcount G['passCount']
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -1127,7 +1349,6 @@ class JoinPage extends StatefulWidget {
 
 class _JoinPageState extends State<JoinPage> {
   bgio.Lobby lobby = bgio.Lobby(Uri.parse('http://rickymetral.xyz:5000'));
-  bgio.Client? client1;
   final TextEditingController _roomCodeController =
       TextEditingController(); // not hooked up right now
   String matchID = '';
@@ -1158,12 +1379,15 @@ class _JoinPageState extends State<JoinPage> {
     bgio.MatchData matchData = response; // definitely not null
     bgio.Game game = matchData.toGame(); // works now
 
+    //game.
+
     try {
       bgio.Client client1 = await _join(game, matchData, 1, player.firstName);
       setState(() {
-        this.client1 = client1;
-        client1.start();
-        player.playerCredentials = client1.credentials;
+        client = client1;
+        client?.subscribe(_update);
+        client?.start();
+        player.playerCredentials = client?.credentials;
       });
 
       if (mounted) {
@@ -1188,6 +1412,18 @@ class _JoinPageState extends State<JoinPage> {
     } catch (e) {
       _errorMessage = "Lobby is full or does not exist";
     }
+  }
+
+  void _update(Map<String, dynamic> G, bgio.ClientContext ctx) {
+    setState(() {
+      //_isPlaying = !ctx.isGameOver && ctx.currentPlayer == widget.client.playerID;
+      _ctx = ctx;
+      // graveyard G['graveyard']
+      // hand G['hands']
+      // board G['board']
+      // boardEnds G['boardEnds']
+      // passcount G['passCount']
+    });
   }
 
   @override
@@ -1634,6 +1870,58 @@ class _GamePageState extends State<GamePage> {
   bool _isLoading = false;
   String _errorMessage = '';
 
+  // when you drop a tile, call client.makeMove('drawTile',...)
+  // when you pass, call client.makeMove('pass',...)
+  // when you play a tile, call client.makeMove('playTile', tileIndex (int, where tile is in hand), end_played (endplayed is left or right))
+
+  // Inside _GamePageState in main.dart
+
+Map<String, dynamic>? _G;
+bgio.ClientContext? _ctx;
+
+@override
+void initState() {
+  super.initState();
+
+  // The subscribe method takes a function that runs whenever the state changes
+  client?.subscribe((G, ctx) {
+    if (mounted) {
+      setState(() {
+        _G = G;
+        _ctx = ctx;
+      });
+    }
+  });
+}
+
+@override
+Widget build(BuildContext context) {
+  // Wait until the client has fetched the initial state from the server
+  if (_G == null || _ctx == null) {
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  }
+
+  return Scaffold(
+    appBar: CustomAppBar(),
+    drawer: CustomDrawer(),
+    body: Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage("assets/images/woodBG.jpg"),
+          fit: BoxFit.cover,
+        ),
+      ),
+      // Pass the unwrapped state and the client itself for making moves
+      child: Board(
+        G: _G!,
+        ctx: _ctx!,
+        client: client!,
+      ),
+    ),
+  );
+}
+
+  /*
   @override
   Widget build(BuildContext context) {
     //final matchID = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
@@ -1792,7 +2080,7 @@ class _GamePageState extends State<GamePage> {
         ),
       ),
     );
-  }
+  }*/
 
   @override
   void dispose() {
