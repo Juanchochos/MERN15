@@ -175,6 +175,22 @@ export const DominoGame = {
             G.passCount = 0;
             events.endTurn();
         },
+
+        debugForceWin: ({ ctx, events }) => {
+            const scores = {};
+            for (let i = 0; i < ctx.numPlayers; i++) scores[String(i)] = 15;
+            scores[ctx.currentPlayer] = 0;
+            events.endGame({ winner: String(ctx.currentPlayer), scores });
+        },
+
+        debugForceLoss: ({ ctx, events }) => {
+            const otherId = ctx.playOrder.find(id => id !== ctx.currentPlayer) ?? '1';
+            const scores = {};
+            for (let i = 0; i < ctx.numPlayers; i++) scores[String(i)] = 15;
+            scores[String(otherId)] = 0;
+            events.endGame({ winner: String(otherId), scores });
+        },
+
     },
 
     onPlayerJoin: (G, ctx, playerID) => {

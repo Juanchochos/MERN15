@@ -27,6 +27,8 @@ const lossGifs = Object.values(
   import.meta.glob('../assets/LossGifs/*.gif', { eager: true, import: 'default' })
 ) as string[];
 
+const DEBUG = import.meta.env.VITE_DEBUG_ENDSCREEN === 'true';
+
 
 /**
  * Updates the match history record in the database.
@@ -147,6 +149,15 @@ function Board({
     updateMatchHistory(userId, players, winners, losers, timeFinished);
 }, [ctx.gameover]);
 
+  useEffect(() => {
+    if (!DEBUG) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'w' || e.key === 'W') moves.debugForceWin();
+      else if (e.key === 'l' || e.key === 'L') moves.debugForceLoss();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -303,6 +314,12 @@ function Board({
             </div> {/* end content row */}
             </div> {/* end centering wrapper */}
           </div> {/* end scroll container */}
+
+          {DEBUG && (
+            <div style={{ position: 'fixed', bottom: 8, right: 8, fontSize: 11, color: '#888', fontFamily: 'monospace', zIndex: 999, pointerEvents: 'none' }}>
+              [debug] W=win L=loss
+            </div>
+          )}
 
           {/* Actions — always visible, disabled when not your turn */}
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', marginTop: 12 }}>
