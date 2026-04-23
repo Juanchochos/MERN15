@@ -1915,7 +1915,7 @@ class _GamePageState extends State<GamePage> {
     if (!_isLoaded) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
-      final String url = 'http://rickymetral.xyz:5000/game'
+      final String url = 'http://rickymetral.xyz:5000/game' // /#/? instead of game maybe??
           '?matchID=${args['matchID']}'
           '&playerID=${args['playerID']}'
           '&credentials=${Uri.encodeComponent(args['credentials'])}';
