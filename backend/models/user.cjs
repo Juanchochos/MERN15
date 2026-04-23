@@ -18,6 +18,7 @@ const UserSchema = new mongoose.Schema({
     activeDominoTheme: { type: mongoose.Schema.Types.ObjectId, ref: 'Theme' },
     activeTableTheme: { type: mongoose.Schema.Types.ObjectId, ref: 'Theme' }
   },
+  isEmailVerified: { type: Boolean, default: false },
   loginVerificationCodeHash: { type: String, default: null },
   loginVerificationExpiresAt: { type: Date, default: null },
   passwordResetCodeHash: { type: String, default: null },

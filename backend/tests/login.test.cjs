@@ -57,4 +57,22 @@ describe('POST /api/login', () => {
     expect(String(payload.userId)).toBe('507f1f77bcf86cd799439011');
   });
 
+  it('rejects login when the email is not verified', async () => {
+    process.env.SKIP_EMAIL_VERIFICATION = 'false';
+    User.findOne.mockResolvedValue({
+      firstName: 'Rick',
+      lastName: 'L',
+      _id: '507f1f77bcf86cd799439011',
+      isEmailVerified: false,
+    });
+
+    const app = createApiApp();
+    const res = await request(app.callback())
+      .post('/api/login')
+      .send({ login: 'RickL', password: 'COP4331' });
+
+    expect(res.status).toBe(403);
+    expect(res.body).toEqual({ error: 'Email not verified. Complete signup verification first.' });
+  });
+
 });
