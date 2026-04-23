@@ -312,7 +312,7 @@ function Board({
 
           {ctx.gameover && (
             <div style={gameoverStyle}>
-              {ctx.gameover.winner === pid ? 'You Win!' : `Player ${ctx.gameover.winner} wins!`}
+              {ctx.gameover.winner === pid ? 'You Win!' : 'You Lost :('}
               <br/>
               <button
                 onClick={() => navigate('/main', { replace: true })}
