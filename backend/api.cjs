@@ -36,7 +36,7 @@ exports.setApp = function (server, client) {
 
       if (skipEmailVerification) {
         ctx.status = 200;
-        ctx.body = token.createToken(user.firstName, user.lastName, user._id);
+        ctx.body = {accessToken: token.createToken(user.firstName, user.lastName, user._id)};
         return;
       }
 
