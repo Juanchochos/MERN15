@@ -209,7 +209,7 @@ header {
 }
 
 #dominoIcon {
-	width: clamp(3rem, 6vw, 3rem);
+	width: 20px;
 	max-width: 3vw;
 	@media (max-width: 1024px) {
 	width: 6vw;
@@ -220,10 +220,13 @@ header {
 }
 
 #dominoIconSmall {
-  width: clamp(1.5rem, 2vw, 2.5rem);
+  width: 50px;
   height: auto;
   transform: rotate(45deg);
   z-index: 2;
+  	@media (max-width: 1024px) {
+	width: 30px;
+  }
 }
 
 #titleHeader {
