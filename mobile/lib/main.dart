@@ -73,6 +73,7 @@ class Player {
 }
 
 Player player = Player(userId: '', firstName: '', lastName: '');
+String authToken = '';
 
 bgio.Client? client;
 bgio.ClientContext? _ctx;
@@ -433,6 +434,7 @@ class _CodeVerificationPage extends State<CodeVerificationPage> {
       if (response.statusCode == 200) {
         Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
         player = Player.fromJson(decoded);
+        authToken = data['accessToken'];
         print(player.userId);
         print(decoded);
         print("Player ID: ${player.userId}, First Name: ${player.firstName}, Last Name: ${player.lastName}");
@@ -625,6 +627,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         final data = jsonDecode(response.body);
         Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
         player = Player.fromJson(decoded);
+        authToken = data['accessToken'];
         //print("Player ID: ${player.userId}, First Name: ${player.firstName}, Last Name: ${player.lastName}");
 
         if (data['error'] == null || data['error'].isEmpty) {
@@ -852,6 +855,7 @@ class _SignupPageState extends State<SignupPage> {
         } else if (data['accessToken'] != null) {
           Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
           player = Player.fromJson(decoded);
+          authToken = data['accessToken'];
 
           if (mounted) {
             Navigator.pushReplacement(
@@ -1135,6 +1139,7 @@ class _SignupVerificationPageState extends State<SignupVerificationPage> {
       if (response.statusCode == 200 && data['accessToken'] != null) {
         Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
         player = Player.fromJson(decoded);
+        authToken = data['accessToken'];
 
         if (mounted) {
           Navigator.pushReplacement(
@@ -2555,7 +2560,10 @@ class _MatchHistoryPageState extends State<MatchHistoryPage> {
     try {
       final response = await http.get(
         buildBackendUri('/api/fetch-match-history?userId=${player.userId}'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
       );
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
