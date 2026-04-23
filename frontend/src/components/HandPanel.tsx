@@ -125,8 +125,8 @@ function HandPanel({
               })}
             </SortableContext>
           ) : (
-            tiles.map((_, idx) => (
-              <DominoTile key={idx} top={0} bottom={0} hidden />
+            tiles.map((tile, idx) => (
+              <DominoTile key={idx} top={tile.top ?? 0} bottom={tile.bottom ?? 0} hidden={tile.hidden ?? false} />
             ))
           )}
         </div>

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
@@ -1788,10 +1789,42 @@ class _LobbyPageState extends State<LobbyPage> {
   String player1Name = '';
   bool startGame = false;
   bool isFull = false;
+  Map<String, dynamic>? _matchArgs;
+  bool _pollingInitialized = false;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_pollingInitialized) {
+      return;
+    }
+
+    final route = ModalRoute.of(context);
+    final args = route?.settings.arguments;
+    if (args is! Map<String, dynamic>) {
+      return;
+    }
+
+    _matchArgs = args;
+    _pollingInitialized = true;
+
+    final matchID = args['matchID'];
+    if (matchID is String && matchID.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        poll(args);
+        timer?.cancel();
+        timer = Timer.periodic(const Duration(seconds: 2), (_) => poll(args));
+      });
+    }
   }
 
   Future<void> markStarted(String matchID) async {
@@ -1861,10 +1894,13 @@ class _LobbyPageState extends State<LobbyPage> {
   Future<void> poll(Map<String, dynamic> match) async {
     await Future.delayed(const Duration(seconds: 2));
     try {
-      bgio.MatchData matchData = await match['lobby'].getMatch(
+      final bgio.MatchData? matchData = await match['lobby'].getMatch(
         'domino',
         match['matchID'],
       );
+      if (matchData == null) {
+        return;
+      }
       // Setting names
       if (mounted) {
         setState(() {
@@ -1919,13 +1955,18 @@ class _LobbyPageState extends State<LobbyPage> {
   @override
   Widget build(BuildContext context) {
     //print("Player in Lobby: ${player.firstName}");
-    final match =
-        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    if (mounted) {
-      if (match['matchID'].isNotEmpty && mounted) {
-        poll(match);
-        timer = Timer.periodic(const Duration(seconds: 2), (_) => poll(match));
-      }
+    final match = _matchArgs;
+    if (match == null) {
+      return Scaffold(
+        appBar: CustomAppBar(),
+        drawer: CustomDrawer(),
+        body: const Center(
+          child: Text(
+            'Unable to load lobby.',
+            style: TextStyle(color: white),
+          ),
+        ),
+      );
     }
     final ButtonStyle style = ElevatedButton.styleFrom(
       textStyle: const TextStyle(fontSize: 20),
@@ -2138,31 +2179,34 @@ class _GamePageState extends State<GamePage> {
   void initState() {
     super.initState();
 
-  late final PlatformWebViewControllerCreationParams params;
-  
-  if (WebViewPlatform.instance is WebKitWebViewPlatform) {
-    // iOS/macOS specific setup
-    params = WebKitWebViewControllerCreationParams(
-      allowsInlineMediaPlayback: true,
-    );
-  } else {
-    // Android/Default setup
-    params = const PlatformWebViewControllerCreationParams();
-  }
-    _webController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0x00000000))
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onWebResourceError: (WebResourceError error) {
-            debugPrint('''
-              Page resource error:
-              code: ${error.errorCode}
-              description: ${error.description}
-            ''');
-          },
-        ),
+    late final PlatformWebViewControllerCreationParams params;
+
+    if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+      params = WebKitWebViewControllerCreationParams(
+        allowsInlineMediaPlayback: true,
       );
+    } else {
+      params = const PlatformWebViewControllerCreationParams();
+    }
+
+    _webController = WebViewController.fromPlatformCreationParams(params);
+
+    if (!kIsWeb) {
+      _webController
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setBackgroundColor(const Color(0x00000000))
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onWebResourceError: (WebResourceError error) {
+              debugPrint('''
+                Page resource error:
+                code: ${error.errorCode}
+                description: ${error.description}
+              ''');
+            },
+          ),
+        );
+    }
   }
 
   @override
