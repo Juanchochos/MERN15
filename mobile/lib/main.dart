@@ -813,6 +813,14 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _passwordController = TextEditingController();
   String _errorMessage = '';
   bool _isLoading = false;
+
+  void _goToLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
+  }
+
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
@@ -848,14 +856,8 @@ class _SignupPageState extends State<SignupPage> {
             );
           }
         } else if (data['accessToken'] != null) {
-          Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
-          player = Player.fromJson(decoded);
-
           if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomePage()),
-            );
+            _goToLogin();
           }
         } else if (data['error'] == null || data['error'].toString().isEmpty) {
           setState(() {
@@ -1110,6 +1112,13 @@ class _SignupVerificationPageState extends State<SignupVerificationPage> {
   String _errorMessage = '';
   bool _isLoading = false;
 
+  void _goToLogin() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
+  }
+
   Future<void> _verifySignup() async {
     setState(() {
       _isLoading = true;
@@ -1131,14 +1140,8 @@ class _SignupVerificationPageState extends State<SignupVerificationPage> {
           decodedResponse is Map<String, dynamic> ? decodedResponse : {};
 
       if (response.statusCode == 200 && data['accessToken'] != null) {
-        Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
-        player = Player.fromJson(decoded);
-
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage()),
-          );
+          _goToLogin();
         }
       } else if (data['error'] != null && data['error'].toString().isNotEmpty) {
         setState(() {

@@ -1,16 +1,6 @@
 import React, { useState } from 'react';
 import { buildPath } from './Path';
-import { storeToken } from '../tokenStorage';
-import { jwtDecode } from 'jwt-decode';
 import { Link } from "react-router-dom";
-
-
-interface JwtPaylod{
-  userId: number;
-  firstName : string;
-  lastName : string;
-  iat: any;
-}
 
 type SignupResponse = {
   error?: string;
@@ -32,30 +22,8 @@ function SignUp() {
   const [authView, setAuthView] = React.useState<'signup' | 'verify'>('signup');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  function finishSignup(accessToken: string): void {
-    storeToken({ accessToken });
-    const decoded = jwtDecode<JwtPaylod>(accessToken);
-
-    try {
-      var ud = decoded;
-      var userId = ud.userId;
-      var firstName = ud.firstName;
-      var lastName = ud.lastName;
-
-      if (userId <= 0) {
-        setMessage('User/Password combination incorrect');
-      }
-      else {
-        var user = { firstName: firstName, lastName: lastName, id: userId }
-        localStorage.setItem('user_data', JSON.stringify(user));
-
-        setMessage('');
-        window.location.href = '/main';
-      }
-    }
-    catch (e) {
-      console.log(e);
-    }
+  function redirectToLogin(): void {
+    window.location.href = '/';
   }
 
   async function parseSignupResponse(response: Response): Promise<SignupResponse | null> {
@@ -115,7 +83,7 @@ function SignUp() {
         return;
       }
 
-      finishSignup(res.accessToken);
+      redirectToLogin();
     }
     catch (error: any) {
       alert(error.toString());
@@ -155,7 +123,7 @@ function SignUp() {
         return;
       }
 
-      finishSignup(res.accessToken);
+      redirectToLogin();
 
     }
     catch (error: any) {
