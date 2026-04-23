@@ -1934,7 +1934,7 @@ class _GamePageState extends State<GamePage> {
 
       final String configs = Uri.encodeComponent(jsonEncode([playerConfig.toJson()]));
 
-      final String url = 'https://rickymetral.xyz/gameRoomPage'
+      final String url = 'https://rickymetral.xyz/game'
           '?matchID=${args['matchID']}'
           '&playerID=${args['playerID']}'
           '&credentials=${Uri.encodeComponent(args['credentials'])}';
@@ -2156,6 +2156,44 @@ class _MatchHistoryPageState extends State<MatchHistoryPage> {
   String matchID = '';
   bool _isLoading = false;
   String _errorMessage = '';
+
+  Future<void> match() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+    try {
+      //print(widget.login);
+      //print(_codeController.text);
+      final response = await http.get(
+        Uri.parse('http://rickymetral.xyz:5000/api/fetch-match-history?userId=${player.userId}'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      final data = await jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        //print("Player ID: ${player.userId}, First Name: ${player.firstName}, Last Name: ${player.lastName}");
+        if(data['accessToken'] != null) {
+          //sessionStorage['token_data'] = data['accessToken'];
+          //print("Token stored in sessionStorage: ${sessionStorage['token_data']}");
+        }
+        //print(data['data']);
+        //List<MatchRecord> matchHistory = (data['data'] as List).map((json) => MatchRecord.fromJson(json)).toList();
+        //print(matchHistory);
+      } else {
+        setState(() {
+          _errorMessage = 'Unable to show match history. Please try again later.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Network error. Please check your connection.';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
