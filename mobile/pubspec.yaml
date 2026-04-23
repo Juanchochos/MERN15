@@ -7,9 +7,19 @@ environment:
   sdk: ^3.11.4
 
 dependencies:
+  boardgame_io:
+    git: http://github.com/flarbear/boardgame_io
   flutter:
     sdk: flutter
   http: ^1.6.0
+  google_fonts: ^8.0.2
+  jwt_decoder: ^2.0.1
+  provider: ^6.1.5+1
+  socket_io_client: 1.0.2
+  webview_flutter: ^4.13.1
+  webview_flutter_web: ^0.2.3+4
+  webview_flutter_wkwebview: ^3.24.5
+  webview_flutter_android: ^4.11.0
 
 dev_dependencies:
   flutter_test:
@@ -18,3 +28,12 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/woodBG.jpg
+    - assets/images/WoodGrain.jpg
+    - assets/images/domino.png
+    - assets/images/exitIcon.png
+    - assets/images/helpIcon.png
+    - assets/images/menuIcon.png
+    - assets/images/settingsIcon.png
+    - assets/images/starIcon.png

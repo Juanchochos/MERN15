@@ -28,6 +28,12 @@ exports.setApp = function (server, client) {
         return;
       }
 
+      if (!user.isEmailVerified && !skipEmailVerification) {
+        ctx.status = 403;
+        ctx.body = { error: "Email not verified. Complete signup verification first." };
+        return;
+      }
+
       if (skipEmailVerification) {
         ctx.status = 200;
         ctx.body = token.createToken(user.firstName, user.lastName, user._id);
@@ -218,15 +224,23 @@ exports.setApp = function (server, client) {
     const { login, password, firstName, lastName, email } = ctx.request.body;
 
     try {
-      const existing = await User.findOne({ login: login });
-
-      if (existing) {
+      const existingByLogin = await User.findOne({ login: login });
+      if (existingByLogin) {
         ctx.status = 409;
         ctx.body = { error: "User Already Exists" };
         return;
       }
 
+      const existingByEmail = await User.findOne({ email: email });
+      if (existingByEmail) {
+        ctx.status = 409;
+        ctx.body = { error: "Email Already Exists" };
+        return;
+      }
+
       const hash = md5(password);
+      const shouldVerifyEmail = !skipEmailVerification;
+      const code = shouldVerifyEmail ? authEmail.generateVerificationCode() : null;
 
        const newUser = new User({
         login: login,
@@ -234,10 +248,24 @@ exports.setApp = function (server, client) {
         firstName: firstName,
         lastName: lastName,
         email: email,
-        password: hash
+        password: hash,
+        isEmailVerified: skipEmailVerification,
+        loginVerificationCodeHash: code ? md5(code) : null,
+        loginVerificationExpiresAt: code ? new Date(Date.now() + 5 * 60 * 1000) : null
       });
 
       const saved = await newUser.save();
+
+      if (shouldVerifyEmail) {
+        await authEmail.sendSignupVerificationEmail(saved.email, code);
+        ctx.status = 201;
+        ctx.body = {
+          message: "Verification code sent",
+          requiresVerification: true,
+          login: saved.login
+        };
+        return;
+      }
 
       const ret = token.createToken(saved.firstName, saved.lastName, saved._id);
 
@@ -261,6 +289,58 @@ exports.setApp = function (server, client) {
 
       ctx.status = 500;
       ctx.body = { error: 'Internal server error' };
+    }
+  });
+
+  server.router.post('/api/verify-signup', koaBody(), async (ctx) => {
+    try {
+      const { login, code } = ctx.request.body || {};
+      const user = await User.findOne({ login: login });
+
+      if (!user) {
+        ctx.status = 404;
+        ctx.body = { error: "User not found" };
+        return;
+      }
+
+      if (user.isEmailVerified) {
+        ctx.status = 200;
+        ctx.body = token.createToken(user.firstName, user.lastName, user._id);
+        return;
+      }
+
+      if (!user.loginVerificationCodeHash || !user.loginVerificationExpiresAt) {
+        ctx.status = 400;
+        ctx.body = { error: "No verification code requested" };
+        return;
+      }
+
+      if (user.loginVerificationExpiresAt < new Date()) {
+        user.loginVerificationCodeHash = null;
+        user.loginVerificationExpiresAt = null;
+        await user.save();
+        ctx.status = 400;
+        ctx.body = { error: "Verification code expired" };
+        return;
+      }
+
+      if (md5(code) !== user.loginVerificationCodeHash) {
+        ctx.status = 400;
+        ctx.body = { error: "Invalid verification code" };
+        return;
+      }
+
+      user.isEmailVerified = true;
+      user.loginVerificationCodeHash = null;
+      user.loginVerificationExpiresAt = null;
+      await user.save();
+
+      ctx.status = 200;
+      ctx.body = token.createToken(user.firstName, user.lastName, user._id);
+    } catch (e) {
+      console.error("api/verify-signup", e);
+      ctx.status = 503;
+      ctx.body = { error: "Unable to verify signup." };
     }
   });
 
