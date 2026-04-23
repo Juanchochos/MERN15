@@ -2513,12 +2513,18 @@ class MatchRecord {
     required this.result,
   });
 
-  factory MatchRecord.fromJson(Map<String, dynamic> json) {
+  factory MatchRecord.fromApiMatch(Map<String, dynamic> match, String currentFirstName) {
+    final winners = (match['winners'] as List<dynamic>? ?? []);
+    final losers  = (match['losers']  as List<dynamic>? ?? []);
+    final isWinner = winners.any((w) => w['name'] == currentFirstName);
+    final opponent = isWinner
+        ? (losers.isNotEmpty  ? losers[0]['name']  : 'Unknown')
+        : (winners.isNotEmpty ? winners[0]['name'] : 'Unknown');
     return MatchRecord(
-      matchID: json['matchID'],
-      player: json['player'],
-      opponent: json['opponent'],
-      result: json['result'],
+      matchID:  match['_id'] ?? '',
+      player:   currentFirstName,
+      opponent: opponent,
+      result:   isWinner ? 'Win' : 'Loss',
     );
   }
 }
@@ -2531,9 +2537,15 @@ class MatchHistoryPage extends StatefulWidget {
 }
 
 class _MatchHistoryPageState extends State<MatchHistoryPage> {
-  String matchID = '';
+  List<MatchRecord> _history = [];
   bool _isLoading = false;
   String _errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    match();
+  }
 
   Future<void> match() async {
     setState(() {
@@ -2541,23 +2553,18 @@ class _MatchHistoryPageState extends State<MatchHistoryPage> {
       _errorMessage = '';
     });
     try {
-      //print(widget.login);
-      //print(_codeController.text);
-      print('Player ID: ${player.userId}');
       final response = await http.get(
-        Uri.parse('http://rickymetral.xyz:5000/api/fetch-match-history?userId=${player.userId}'),
+        buildBackendUri('/api/fetch-match-history?userId=${player.userId}'),
         headers: {'Content-Type': 'application/json'},
       );
-      final data = await jsonDecode(response.body);
+      final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        //print("Player ID: ${player.userId}, First Name: ${player.firstName}, Last Name: ${player.lastName}");
-        if(data['accessToken'] != null) {
-          //sessionStorage['token_data'] = data['accessToken'];
-          //print("Token stored in sessionStorage: ${sessionStorage['token_data']}");
-        }
-        //print(data['data']);
-        //List<MatchRecord> matchHistory = (data['data'] as List).map((json) => MatchRecord.fromJson(json)).toList();
-        //print(matchHistory);
+        final raw = data['data'] as List<dynamic>? ?? [];
+        setState(() {
+          _history = raw
+              .map((m) => MatchRecord.fromApiMatch(m as Map<String, dynamic>, player.firstName))
+              .toList();
+        });
       } else {
         setState(() {
           _errorMessage = 'Unable to show match history. Please try again later.';
@@ -2626,27 +2633,47 @@ class _MatchHistoryPageState extends State<MatchHistoryPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Games
-                        for(int i = 0; i < 5; i++) // Replace with matchHistory.length when implemented
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              'Match ${i + 1}', // Replace with matchHistory[i].matchID or similar when implemented
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: white,
-                                fontWeight: FontWeight.bold,
+                        if (_isLoading)
+                          const Center(child: CircularProgressIndicator(color: white))
+                        else if (_errorMessage.isNotEmpty)
+                          Text(
+                            _errorMessage,
+                            style: const TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          )
+                        else if (_history.isEmpty)
+                          const Text(
+                            'No match history found.',
+                            style: TextStyle(color: white),
+                            textAlign: TextAlign.center,
+                          )
+                        else
+                          for (final record in _history)
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              textAlign: TextAlign.center,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'vs ${record.opponent}',
+                                    style: const TextStyle(fontSize: 16, color: white, fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(
+                                    record.result,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: record.result == 'Win' ? green2 : Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        const SizedBox(height: 24),
-                        const SizedBox(height: 24),
                         const SizedBox(height: 24),
                       ],
                     ),
