@@ -42,12 +42,20 @@ const DominoClient = Client({
 function GameRoomPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const session = location.state as { matchID: string; playerID: string; credentials: string } | null;
+  //const session = location.state as { matchID: string; playerID: string; credentials: string } | null;
+  const query = new URLSearchParams(location.search);
+  
+  const session = (location.state as any) || {
+    matchID: query.get('matchID'),
+    playerID: query.get('playerID'),
+    credentials: query.get('credentials'),
+  };
 
+  //const [playerConfigs, setPlayerConfigs] = useState<PlayerConfig[] | null>(null);
   const [playerConfigs, setPlayerConfigs] = useState<PlayerConfig[] | null>(null);
 
   useEffect(() => {
-    if (!session) {
+    if (!session.matchID || !session.playerID) {
       navigate('/main', { replace: true });
       return;
     }

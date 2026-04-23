@@ -7,7 +7,6 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'dart:convert';
 import 'drawer.dart';
 import 'package:boardgame_io/boardgame.dart' as bgio;
-import 'Board.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
@@ -1862,6 +1861,24 @@ class _LobbyPageState extends State<LobbyPage> {
   }
 }
 
+class PlayerConfig {
+  final String playerID;
+  final String username;
+  final int team;
+
+  PlayerConfig({
+    required this.playerID,
+    required this.username,
+    required this.team
+  });
+
+  Map<String, dynamic> toJson() => {
+        'playerID': playerID,
+        'username': username,
+        'team': team,
+      };
+}
+
 class GamePage extends StatefulWidget {
   const GamePage({super.key});
   @override
@@ -1869,7 +1886,6 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> {
-  // 1. Declare the controller
   late final WebViewController _webController;
   bool _isLoaded = false;
 
@@ -1877,7 +1893,6 @@ class _GamePageState extends State<GamePage> {
   void initState() {
     super.initState();
 
-    // 1. Setup platform-specific params without the broken playback parameter
   late final PlatformWebViewControllerCreationParams params;
   
   if (WebViewPlatform.instance is WebKitWebViewPlatform) {
@@ -1889,8 +1904,6 @@ class _GamePageState extends State<GamePage> {
     // Android/Default setup
     params = const PlatformWebViewControllerCreationParams();
   }
-    
-    // 2. Initialize the controller settings immediately
     _webController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(const Color(0x00000000))
@@ -1910,15 +1923,23 @@ class _GamePageState extends State<GamePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    
-    // 3. This is where we safely extract context-based arguments
+
     if (!_isLoaded) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      PlayerConfig playerConfig = PlayerConfig(
+        playerID: args['playerID'].toString(),
+        username: player.firstName,
+        team: player.isHost? 0 : 1,
+      );
 
-      final String url = 'http://rickymetral.xyz:5000/game' // /#/? instead of game maybe??
+      final String configs = Uri.encodeComponent(jsonEncode([playerConfig.toJson()]));
+
+      final String url = 'https://rickymetral.xyz/gameRoomPage'
           '?matchID=${args['matchID']}'
           '&playerID=${args['playerID']}'
           '&credentials=${Uri.encodeComponent(args['credentials'])}';
+          //'&playerConfigs=$configs'
+          //;
 
       _webController.loadRequest(Uri.parse(url));
       _isLoaded = true;
