@@ -34,30 +34,23 @@ function Create() {
   return (
     <>
       {step === 'modeSelection' && (
-         <button
-        onClick={() => { setStep('options'); setError(''); }}
-        style={{
-          alignSelf: 'flex-start',
-          marginLeft: 24,
-          marginTop: 5,
-          background: 'none',
-          border: 'none',
-          color: '#F0DFD3',
-          fontSize: 20,
-          cursor: 'pointer',
-          fontFamily: '"Exo", sans-serif',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 6,
-        }}
-      >
-        ← Back
-      </button>
+	  <div id="loginDiv">
+		  <div id="inner-title">
+			 <button
+			onClick={() => { setStep('options'); setError(''); }}
+			className="backBtn"
+		  >
+			← Back
+		  </button>
+		  
+		  <span className="titleText">Choose Opponents</span>
+		  
+		  </div>
+	  </div>
       )}
 
       {step === 'modeSelection' ? (
         <div id="loginDiv">
-          <span id="inner-title">Choose Opponents</span><br />
           {error && <p style={{ color: 'red' }}>{error}</p>}
           <input
             type="submit" id="opponentButton" className="buttons"

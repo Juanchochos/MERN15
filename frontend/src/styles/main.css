@@ -155,7 +155,7 @@ header {
 	font-family: "Exo", sans-serif !important;
 	font-weight: 200;
     font-size: clamp(5rem, 6vw, 3rem);
-	width: 20%;
+	width: 500px%;
 	text-align: center;
     color: #F0DFD3;
 	/*border: 3px solid white;*/
@@ -188,7 +188,7 @@ header {
 	align-items: center;
 	justify-content: center;
 	gap: clamp(3rem, 6vw, 3rem);
-	width: 90%;
+	width: 100%;
 	margin-top: 30px;
 	@media (max-width: 1024px) {
 	gap: 10px;
@@ -381,14 +381,16 @@ header {
 	align-items: center;
 	justify-content: flex-start;
 	gap: 10px;
-	margin-left: 30%;
-	width: 40%;
+	margin: 0 auto;
+	width: 30%;
+	min-width: 800px;
     font-size: 25px;
 	font-weight: 300;
 	color: black;
 	z-index: 1;
 
 	height: 100%;
+	min-height: 241px;
 
 	border-radius: 3px;
 
@@ -402,6 +404,7 @@ header {
 	position: relative;
 	@media (max-width: 1024px) {
 		width: 95%;
+		min-width: 0px;
 		margin-left: 2.5%;
 	}
 }
@@ -424,7 +427,7 @@ header {
 	
 	border-radius: 3px;
 	
-    background-image: url("/img/WoodGrain.jpg");
+    background-image: url("/img/WoodGrainAVIF.avif");
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
@@ -556,8 +559,8 @@ header {
 #opponentButton {
 	padding: 10px;
 	width: 70%;
-	margin-top: 15px;
-	margin-bottom: 60px;
+	margin-top: 0px;
+	margin-bottom: 20px;
 	font-weight: 300;
 	color: #F0DFD3;
 	background-color: #259506;
@@ -596,8 +599,8 @@ header {
 #createButton {
 	padding: 10px;
 	width: 70%;
-	margin-top: 15px;
-	margin-bottom: 20px;
+	margin-top: 32px;
+	margin-bottom: 84px;
 	font-weight: 300;
 }
 #registerButton {
@@ -727,6 +730,7 @@ header {
 	display: flex;
 	font-size: 40px;
 	justify-content: center;
+	align-items: center;
 	text-align: center;
 	padding-top: 20px;
 	border-radius: 3px 3px 0px 0px;
@@ -735,7 +739,35 @@ header {
 	color: #F0DFD3;
 	width: 100%;
 	height: 50px;
+	position: relative;
 }
+
+.backBtn {
+  position: absolute;
+  left: 5px;
+  background: none;
+  border: none;
+  color: #F0DFD3;
+  font-size: 30px;
+  cursor: pointer;
+  font-family: "Exo", sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  	@media (max-width: 1024px) {
+		font-size: 20px;
+	}
+}
+
+.titleText {
+  margin: 0 auto;
+  font-size: 40px;
+  font-family: "Exo", sans-serif;
+  	@media (max-width: 1024px) {
+		font-size: 30px;
+	}
+}
+
 
 #signUpMessage {
 	display: flex;

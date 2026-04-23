@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { buildPath } from './Path';
-import { storeToken } from '../tokenStorage';
-import { jwtDecode } from 'jwt-decode';
 import { Link } from "react-router-dom";
 
 
@@ -156,6 +154,7 @@ function SignUp() {
       }
 
       finishSignup(res.accessToken);
+
     }
     catch (error: any) {
       alert(error.toString());
