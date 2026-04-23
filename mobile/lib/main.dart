@@ -8,6 +8,9 @@ import 'dart:convert';
 import 'drawer.dart';
 import 'package:boardgame_io/boardgame.dart' as bgio;
 import 'Board.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 //import 'package:provider/provider.dart';
 //import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -1246,11 +1249,11 @@ class _CreatePageState extends State<CreatePage> {
     setState(() {
       //_isPlaying = !ctx.isGameOver && ctx.currentPlayer == widget.client.playerID;
       _ctx = ctx;
-      // graveyard G['graveyard']
-      // hand G['hands']
-      // board G['board']
-      // boardEnds G'boardEnds
-      // passcount G['passCount']
+      /*_graveyard = graveyard G['graveyard'];
+      _hand = hand G['hands'];
+      _board = board G['board'];
+      _boardEnds = boardEnds G['boardEnds'];
+      _passcount = passcount G['passCount'];*/
     });
   }
 
@@ -1418,11 +1421,11 @@ class _JoinPageState extends State<JoinPage> {
     setState(() {
       //_isPlaying = !ctx.isGameOver && ctx.currentPlayer == widget.client.playerID;
       _ctx = ctx;
-      // graveyard G['graveyard']
-      // hand G['hands']
-      // board G['board']
-      // boardEnds G['boardEnds']
-      // passcount G['passCount']
+      /*_graveyard = graveyard G['graveyard'];
+      _hand = hand G['hands'];
+      _board = board G['board'];
+      _boardEnds = boardEnds G['boardEnds'];
+      _passcount = passcount G['passCount'];*/
     });
   }
 
@@ -1866,62 +1869,62 @@ class GamePage extends StatefulWidget {
 }
 
 class _GamePageState extends State<GamePage> {
-  //String matchID = '';
-  bool _isLoading = false;
-  String _errorMessage = '';
+  // 1. Declare the controller
+  late final WebViewController _webController;
+  bool _isLoaded = false;
 
-  // when you drop a tile, call client.makeMove('drawTile',...)
-  // when you pass, call client.makeMove('pass',...)
-  // when you play a tile, call client.makeMove('playTile', tileIndex (int, where tile is in hand), end_played (endplayed is left or right))
+  @override
+  void initState() {
+    super.initState();
 
-  // Inside _GamePageState in main.dart
-
-Map<String, dynamic>? _G;
-bgio.ClientContext? _ctx;
-
-@override
-void initState() {
-  super.initState();
-
-  // The subscribe method takes a function that runs whenever the state changes
-  client?.subscribe((G, ctx) {
-    if (mounted) {
-      setState(() {
-        _G = G;
-        _ctx = ctx;
-      });
-    }
-  });
-}
-
-@override
-Widget build(BuildContext context) {
-  // Wait until the client has fetched the initial state from the server
-  if (_G == null || _ctx == null) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    // 1. Setup platform-specific params without the broken playback parameter
+  late final PlatformWebViewControllerCreationParams params;
+  
+  if (WebViewPlatform.instance is WebKitWebViewPlatform) {
+    // iOS/macOS specific setup
+    params = WebKitWebViewControllerCreationParams(
+      allowsInlineMediaPlayback: true,
+    );
+  } else {
+    // Android/Default setup
+    params = const PlatformWebViewControllerCreationParams();
+  }
+    
+    // 2. Initialize the controller settings immediately
+    _webController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setBackgroundColor(const Color(0x00000000))
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onWebResourceError: (WebResourceError error) {
+            debugPrint('''
+              Page resource error:
+              code: ${error.errorCode}
+              description: ${error.description}
+            ''');
+          },
+        ),
+      );
   }
 
-  return Scaffold(
-    appBar: CustomAppBar(),
-    drawer: CustomDrawer(),
-    body: Container(
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage("assets/images/woodBG.jpg"),
-          fit: BoxFit.cover,
-        ),
-      ),
-      // Pass the unwrapped state and the client itself for making moves
-      child: Board(
-        G: _G!,
-        ctx: _ctx!,
-        client: client!,
-      ),
-    ),
-  );
-}
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // 3. This is where we safely extract context-based arguments
+    if (!_isLoaded) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
 
-  /*
+      final String url = 'http://rickymetral.xyz:5000/game'
+          '?matchID=${args['matchID']}'
+          '&playerID=${args['playerID']}'
+          '&credentials=${Uri.encodeComponent(args['credentials'])}';
+
+      _webController.loadRequest(Uri.parse(url));
+      _isLoaded = true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     //final matchID = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
@@ -1934,6 +1937,8 @@ Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(),
       drawer: CustomDrawer(),
+      body: WebViewWidget(controller: _webController),
+      /*
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
@@ -1968,7 +1973,7 @@ Widget build(BuildContext context) {
                       fit: BoxFit.fill,
                     ),
                   ),
-                  child: Padding(
+                  /*child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -2072,15 +2077,23 @@ Widget build(BuildContext context) {
                         const SizedBox(height: 12),
                       ],
                     ),
-                  ),
+                  ),*/
+
+                  
+                  /*child: Board(
+                    G: client!.G,         // The game state (hands, board, etc.)
+                    ctx: client!.ctx,     // The context (currentPlayer, gameover)
+                    client: client!,      // The client instance to call moves
+                  ),*/
                 ),
               ],
             ),
           ),
         ),
-      ),
+      ),*/
+
     );
-  }*/
+  }
 
   @override
   void dispose() {
