@@ -2668,7 +2668,7 @@ class _MatchHistoryPageState extends State<MatchHistoryPage> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'vs ${record.opponent}',
+                                    '${player.firstName} vs ${record.opponent}',
                                     style: const TextStyle(fontSize: 16, color: white, fontWeight: FontWeight.bold),
                                   ),
                                   Text(
