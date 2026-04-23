@@ -24,7 +24,8 @@ async function authenticateToken(ctx, next) {
                 firstName: decoded.firstName,
                 lastName:  decoded.lastName
             },
-            process.env.ACCESS_TOKEN_SECRET
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: '1h' }
         );
 
         ctx.state.refreshedToken = refreshedToken;

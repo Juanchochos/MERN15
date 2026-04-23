@@ -70,7 +70,7 @@ main {
 
 body {
 	margin: 0;
-    background-image: url("/img/woodBG.jpg");
+    background-image: url("/img/WoodBGAVIF.avif");
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;
@@ -169,7 +169,7 @@ header {
 {
 	font-family: "Exo", sans-serif !important;
 	font-weight: 200;
-    font-size: clamp(3rem, 6vw, 3rem);
+    font-size: 50px;
 	width: 20%;
 	text-align: left;
     color: var(--text);
@@ -201,7 +201,7 @@ header {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 10px;
+	gap: 50px;
 	width: 100%;
 	margin-top: 20px;
 	/*border: 2px solid blue;*/
@@ -277,14 +277,14 @@ header {
   .mobileMenu {
     position: absolute;
     top: 100%;
-	right: 10%;
+	right: 20%;
     background: black;
     padding-top: 15px;
 	padding-bottom: 15px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 80%;
+    width: 60%;
     z-index: 999;
 	border: 2px solid var(--text);
   }
@@ -309,7 +309,7 @@ header {
     padding: 0;
     display: block;
     width: 100%;
-    text-align: left;
+    text-align: center;
   }
 
   .mobileMenu button:hover {
@@ -381,8 +381,8 @@ header {
 	align-items: center;
 	justify-content: flex-start;
 	gap: 10px;
-	margin-left: 35%;
-	width: 30%;
+	margin-left: 30%;
+	width: 40%;
     font-size: 25px;
 	font-weight: 300;
 	color: black;
@@ -392,7 +392,7 @@ header {
 
 	border-radius: 3px;
 
-    background-image: url("/img/WoodGrain.jpg");
+    background-image: url("/img/WoodGrainAVIF.avif");
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center;

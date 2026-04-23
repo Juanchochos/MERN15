@@ -19,7 +19,10 @@ const UserSchema = new mongoose.Schema({
     activeTableTheme: { type: mongoose.Schema.Types.ObjectId, ref: 'Theme' }
   },
   loginVerificationCodeHash: { type: String, default: null },
-  loginVerificationExpiresAt: { type: Date, default: null }
+  loginVerificationExpiresAt: { type: Date, default: null },
+  passwordResetCodeHash: { type: String, default: null },
+  passwordResetExpiresAt: { type: Date, default: null },
+  passwordResetVerifiedExpiresAt: { type: Date, default: null }
 });
 
 module.exports = mongoose.model('User', UserSchema);

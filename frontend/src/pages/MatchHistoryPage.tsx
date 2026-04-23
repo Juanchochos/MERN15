@@ -33,7 +33,7 @@ async function getMatchHistory(): Promise<any> {
     }
 
     if (result.accessToken) {
-        storeToken(result.accessToken); 
+        storeToken(result); 
     }
 
     return result.data; 
@@ -51,7 +51,8 @@ function getCurrentUserName() {
 }
 
 function convertMatchToRecord(match: any, currentUserName: string): MatchRecord {
-  const isWinner = match.winners.some((w: any) => w.name === currentUserName);
+  const firstName = currentUserName.split(" ")[0];
+  const isWinner = match.winners.some((w: any) => w.name === firstName);
   const opponent = isWinner
     ? match.losers[0]?.name
     : match.winners[0]?.name;
@@ -75,9 +76,12 @@ function MatchHistoryPage() {
         return;
       }
 
+
       const converted = matches.map((m: any) =>
         convertMatchToRecord(m, currentUserName)
+        // console.log("Players:"  + m.players[0].name + "and" +  m.players[1].name)
       );
+
 
       setHistory(converted);
     }
