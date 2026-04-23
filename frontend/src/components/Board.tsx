@@ -312,18 +312,48 @@ function Board({
             </button>
           </div>
 
-          {ctx.gameover && (
+          {G.drawPending && (
             <div style={gameoverStyle}>
-              {ctx.gameover.winner === pid ? 'You Win!' : 'You Lost :('}
-              <br/>
-              <button
-                onClick={() => navigate('/main', { replace: true })}
-                style={btnStyle(false)}
-              >
-                Return to home
-              </button>
+              <div>{"It's a Draw!"}</div>
+              <div style={{ fontSize: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                {(playerConfigs.length > 0
+                  ? playerConfigs
+                  : ctx.playOrder.map((id: string) => ({ playerID: id, username: `Player ${id}` }))
+                ).map((p: any) => (
+                  <div key={p.playerID}>
+                    {p.username}: {G.drawScores?.[p.playerID] ?? 0} pts
+                  </div>
+                ))}
+              </div>
+              {pid === '0'
+                ? <button onClick={() => moves.restartGame()} style={btnStyle(false)}>Restart Game</button>
+                : <div style={{ fontSize: 20 }}>Waiting for host to restart game...</div>
+              }
             </div>
           )}
+
+          {ctx.gameover && (() => {
+            const { winner, scores } = ctx.gameover;
+            return (
+              <div style={gameoverStyle}>
+                <div>{winner === pid ? 'You Win!' : 'You Lost :('}</div>
+                <div style={{ fontSize: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                  {(playerConfigs.length > 0
+                    ? playerConfigs
+                    : ctx.playOrder.map((id: string) => ({ playerID: id, username: `Player ${id}` }))
+                  ).map((p: any) => (
+                    <div key={p.playerID}>
+                      {p.username}: {scores?.[p.playerID] ?? 0} pts
+                      {winner === p.playerID ? ' 🏆' : ''}
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => navigate('/main', { replace: true })} style={btnStyle(false)}>
+                  Return to home
+                </button>
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── Bottom: my team ── */}

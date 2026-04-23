@@ -23,6 +23,8 @@ interface GameState {
     board: BoardEntry[];
     boardEnds: BoardEnds;
     passCount: number;
+    drawPending: boolean;
+    drawScores: Record<string, number> | null;
 }
 
 export const DominoGame = {
@@ -53,17 +55,48 @@ export const DominoGame = {
             board: [],
             boardEnds: { left: null, right: null },
             passCount: 0,
+            drawPending: false,
+            drawScores: null,
         };
+    },
+
+    turn: {
+        stages: {
+            restart: {
+                moves: {
+                    restartGame: ({ G, ctx, events }: { G: GameState; ctx: any; events: any }) => {
+                        const tiles: Tile[] = [];
+                        for (let i = 0; i <= 6; i++)
+                            for (let j = i; j <= 6; j++)
+                                tiles.push({ top: i, bottom: j });
+                        const shuffled = shuffle(tiles);
+                        const hands: Record<string, Tile[]> = {};
+                        for (let i = 0; i < ctx.numPlayers; i++)
+                            hands[String(i)] = shuffled.splice(0, 7);
+                        G.hands = hands;
+                        G.graveyard = shuffled;
+                        G.board = [];
+                        G.boardEnds = { left: null, right: null };
+                        G.passCount = 0;
+                        G.drawPending = false;
+                        G.drawScores = null;
+                        events.endTurn();
+                    },
+                },
+            },
+        },
     },
 
     moves: {
         drawTile: ({ G, ctx }: { G: GameState; ctx: any }) => {
+            if (G.drawPending) return INVALID_MOVE;
             if (G.graveyard.length === 0) return INVALID_MOVE;
             const tile = G.graveyard.pop()!;
             G.hands[ctx.currentPlayer].push(tile);
         },
 
         pass: ({ G, ctx, events }: { G: GameState; ctx: any; events: any }) => {
+            if (G.drawPending) return INVALID_MOVE;
             const { left, right } = G.boardEnds;
             if (
                 left !== null &&
@@ -74,6 +107,21 @@ export const DominoGame = {
             }
             if (G.graveyard.length !== 0) return INVALID_MOVE;
             G.passCount += 1;
+
+            if (G.passCount >= ctx.numPlayers) {
+                const scores: Record<string, number> = {};
+                for (let i = 0; i < ctx.numPlayers; i++)
+                    scores[String(i)] = getHandScore(G.hands[String(i)]);
+                const vals = Object.values(scores);
+                const isDraw = vals.every(s => s === vals[0]);
+                if (isDraw) {
+                    G.drawPending = true;
+                    G.drawScores = scores;
+                    events.setActivePlayers({ value: { '0': 'restart' } });
+                    return;
+                }
+            }
+
             events.endTurn();
         },
 
@@ -82,6 +130,7 @@ export const DominoGame = {
             tileIdx: number,
             end_played: Side
         ) => {
+            if (G.drawPending) return INVALID_MOVE;
             const hand = G.hands[ctx.currentPlayer];
             if (tileIdx >= hand.length) return INVALID_MOVE;
 
@@ -126,20 +175,27 @@ export const DominoGame = {
     },
 
     endIf: ({ G, ctx }: { G: GameState; ctx: any }) => {
+        if (G.drawPending) return undefined;
+
+        const scores: Record<string, number> = {};
+        for (let i = 0; i < ctx.numPlayers; i++)
+            scores[String(i)] = getHandScore(G.hands[String(i)]);
+
         if (G.hands[ctx.currentPlayer].length === 0) {
-            return { winner: String(ctx.currentPlayer) };
+            scores[ctx.currentPlayer] = 0;
+            return { winner: String(ctx.currentPlayer), scores };
         }
+
         if (G.passCount >= ctx.numPlayers) {
             let minScore = Infinity;
-            let winnerId = 0;
+            let winnerId = '0';
             for (let i = 0; i < ctx.numPlayers; i++) {
-                const score = getHandScore(G.hands[i]);
-                if (score < minScore) {
-                    minScore = score;
-                    winnerId = i;
+                if (scores[String(i)] < minScore) {
+                    minScore = scores[String(i)];
+                    winnerId = String(i);
                 }
             }
-            return { winner: String(winnerId) };
+            return { winner: winnerId, scores };
         }
     },
 };
