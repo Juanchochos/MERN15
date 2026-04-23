@@ -13,12 +13,19 @@ import { arrayMove } from '@dnd-kit/sortable';
 import DominoTile from './DominoTile';
 import HandPanel from './HandPanel';
 import DropZone from './DropZone';
-import { canPlayTile } from '../games/domino-helper';
+import { canPlayTile, canPlayDomino } from '../games/domino-helper';
 import type { DragData, DropData } from '../games/dnd-types';
 import type { PlayerConfig } from '../games/player-types';
 import { buildPath } from './Path';
 import { storeToken, retrieveToken } from '../tokenStorage';
 import { useNavigate } from 'react-router-dom';
+
+const winGifs = Object.values(
+  import.meta.glob('../assets/WinGifs/*.gif', { eager: true, import: 'default' })
+) as string[];
+const lossGifs = Object.values(
+  import.meta.glob('../assets/LossGifs/*.gif', { eager: true, import: 'default' })
+) as string[];
 
 
 /**
@@ -85,7 +92,10 @@ function Board({
   const pid = playerID ?? '0';
   const myHand: any[] = G.hands[pid] ?? [];
   const isMyTurn = ctx.currentPlayer === pid;
+  const [selectedGif, setSelectedGif] = useState<string | null>(null);
   const boardIsEmpty = G.board.length === 0;
+  const { left, right } = G.boardEnds;
+  const canPlay = boardIsEmpty || (left !== null && canPlayDomino(left, right!, myHand));
 
   const [localOrder, setLocalOrder] = useState<number[]>(() => myHand.map((_, i) => i));
   const [isDragging, setIsDragging] = useState(false);
@@ -114,6 +124,8 @@ function Board({
     if (!ctx.gameover) return;
 
     const winner = ctx.gameover.winner;
+    const pool = winner === pid ? winGifs : lossGifs;
+    if (pool.length > 0) setSelectedGif(pool[Math.floor(Math.random() * pool.length)]);
     const timeFinished = new Date();
 
     const players = playerConfigs.length > 0
@@ -303,25 +315,58 @@ function Board({
             </button>
             <button
               onClick={() => moves.pass()}
-              disabled={!isMyTurn || G.graveyard.length > 0}
-              style={btnStyle(!isMyTurn || G.graveyard.length > 0)}
+              disabled={!isMyTurn || G.graveyard.length > 0 || canPlay}
+              style={btnStyle(!isMyTurn || G.graveyard.length > 0 || canPlay)}
             >
               Pass
             </button>
           </div>
 
-          {ctx.gameover && (
+          {G.drawPending && (
             <div style={gameoverStyle}>
-              {ctx.gameover.winner === pid ? 'You Win!' : `Player ${ctx.gameover.winner} wins!`}
-              <br/>
-              <button
-                onClick={() => navigate('/main', { replace: true })}
-                style={btnStyle(false)}
-              >
-                Return to home
-              </button>
+              <div>{"It's a Draw!"}</div>
+              <div style={{ fontSize: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                {(playerConfigs.length > 0
+                  ? playerConfigs
+                  : ctx.playOrder.map((id: string) => ({ playerID: id, username: `Player ${id}` }))
+                ).map((p: any) => (
+                  <div key={p.playerID}>
+                    {p.username}: {G.drawScores?.[p.playerID] ?? 0} pts
+                  </div>
+                ))}
+              </div>
+              {pid === '0'
+                ? <button onClick={() => moves.restartGame()} style={btnStyle(false)}>Restart Game</button>
+                : <div style={{ fontSize: 20 }}>Waiting for host to restart game...</div>
+              }
             </div>
           )}
+
+          {ctx.gameover && (() => {
+            const { winner, scores } = ctx.gameover;
+            return (
+              <div style={gameoverStyle}>
+                <div>{winner === pid ? 'You Win!' : 'You Lost :('}</div>
+                {selectedGif && (
+                  <img src={selectedGif} alt="" style={{ maxWidth: 300, maxHeight: 250, borderRadius: 12, objectFit: 'contain' }} />
+                )}
+                <div style={{ fontSize: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                  {(playerConfigs.length > 0
+                    ? playerConfigs
+                    : ctx.playOrder.map((id: string) => ({ playerID: id, username: `Player ${id}` }))
+                  ).map((p: any) => (
+                    <div key={p.playerID}>
+                      {p.username}: {scores?.[p.playerID] ?? 0} pts
+                      {winner === p.playerID ? ' 🏆' : ''}
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => navigate('/main', { replace: true })} style={btnStyle(false)}>
+                  Return to home
+                </button>
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── Bottom: my team ── */}
