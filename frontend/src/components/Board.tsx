@@ -20,6 +20,13 @@ import { buildPath } from './Path';
 import { storeToken, retrieveToken } from '../tokenStorage';
 import { useNavigate } from 'react-router-dom';
 
+const winGifs = Object.values(
+  import.meta.glob('../assets/WinGifs/*.gif', { eager: true, import: 'default' })
+) as string[];
+const lossGifs = Object.values(
+  import.meta.glob('../assets/LossGifs/*.gif', { eager: true, import: 'default' })
+) as string[];
+
 
 /**
  * Updates the match history record in the database.
@@ -85,6 +92,7 @@ function Board({
   const pid = playerID ?? '0';
   const myHand: any[] = G.hands[pid] ?? [];
   const isMyTurn = ctx.currentPlayer === pid;
+  const [selectedGif, setSelectedGif] = useState<string | null>(null);
   const boardIsEmpty = G.board.length === 0;
   const { left, right } = G.boardEnds;
   const canPlay = boardIsEmpty || (left !== null && canPlayDomino(left, right!, myHand));
@@ -116,6 +124,8 @@ function Board({
     if (!ctx.gameover) return;
 
     const winner = ctx.gameover.winner;
+    const pool = winner === pid ? winGifs : lossGifs;
+    if (pool.length > 0) setSelectedGif(pool[Math.floor(Math.random() * pool.length)]);
     const timeFinished = new Date();
 
     const players = playerConfigs.length > 0
@@ -337,6 +347,9 @@ function Board({
             return (
               <div style={gameoverStyle}>
                 <div>{winner === pid ? 'You Win!' : 'You Lost :('}</div>
+                {selectedGif && (
+                  <img src={selectedGif} alt="" style={{ maxWidth: 300, maxHeight: 250, borderRadius: 12, objectFit: 'contain' }} />
+                )}
                 <div style={{ fontSize: 22, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
                   {(playerConfigs.length > 0
                     ? playerConfigs
