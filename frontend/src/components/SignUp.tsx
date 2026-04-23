@@ -1,16 +1,6 @@
 import React, { useState } from 'react';
 import { buildPath } from './Path';
-import { storeToken } from '../tokenStorage';
-import { jwtDecode } from 'jwt-decode';
 import { Link } from "react-router-dom";
-
-
-interface JwtPaylod{
-  userId: number;
-  firstName : string;
-  lastName : string;
-  iat: any;
-}
 
 function SignUp() {
 
@@ -57,32 +47,8 @@ function SignUp() {
         }
         return;
       }
-      // Only decode once we know token exists
-      const { accessToken } = res;
-      storeToken(res);
-      const decoded = jwtDecode<JwtPaylod>(accessToken);
-
-      try {
-        var ud = decoded;
-        var userId = ud.userId;
-        var firstName = ud.firstName;
-        var lastName = ud.lastName;
-
-        if (userId <= 0) {
-          setMessage('User/Password combination incorrect');
-        }
-        else {
-          var user = { firstName: firstName, lastName: lastName, id: userId }
-          localStorage.setItem('user_data', JSON.stringify(user));
-
-          setMessage('');
-          window.location.href = '/main';
-        }
-      }
-      catch (e) {
-        console.log(e);
-        return;
-      }
+      setMessage('');
+      window.location.href = '/';
     }
     catch (error: any) {
       alert(error.toString());
