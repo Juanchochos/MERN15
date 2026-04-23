@@ -28,7 +28,7 @@ function PageHeader({ warnOnLeave = false }: { warnOnLeave?: boolean }) {
 
 	return (
 		<>
-		<header role="banner">
+		<header role="banner" className="page-header">
 		<div className="containerHeader">
 			<div className="HeaderWrapper">
 				<div id="titleHeader" className="headerUI" onClick={() => confirmLeave("/main")} style={{ cursor: "pointer" }}>

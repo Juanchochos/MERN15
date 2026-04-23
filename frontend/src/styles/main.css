@@ -709,6 +709,13 @@ header {
 	}
 }
 
+@media (max-width: 800px) {
+  #gameRoomPage .page-header {
+    display: none !important;
+  }
+}
+
+
 #forgotPasswordLink {
 	background: none;
 	border: none;
