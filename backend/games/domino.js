@@ -46,18 +46,19 @@ export const DominoGame = {
             board: [],
             boardEnds: { left: null, right: null },
             passCount: 0,
+            drawPending: false,
+            drawScores: null,
         };
     },
 
     // Hide other players' hands and graveyard contents
-    playerView({ G, playerID }) {
+    playerView({ G, ctx, playerID }) {
+        const reveal = !!ctx.gameover || G.drawPending;
         const hands = {};
         for (const pid in G.hands) {
-            if (pid === playerID) {
-                hands[pid] = G.hands[pid];
-            } else {
-                hands[pid] = G.hands[pid].map(() => ({ hidden: true }));
-            }
+            hands[pid] = (pid === playerID || reveal)
+                ? G.hands[pid]
+                : G.hands[pid].map(() => ({ hidden: true }));
         }
         return {
             ...G,
@@ -72,17 +73,42 @@ export const DominoGame = {
             first: ({ G, ctx }) => findFirstPlayer(G.hands, ctx.numPlayers),
             next: ({ ctx }) => (ctx.playOrderPos + 1) % ctx.numPlayers,
         },
-        moveLimit: 1,
+        stages: {
+            restart: {
+                moves: {
+                    restartGame: ({ G, ctx, events }) => {
+                        const tiles = [];
+                        for (let i = 0; i <= 6; i++)
+                            for (let j = i; j <= 6; j++)
+                                tiles.push({ top: i, bottom: j });
+                        const shuffled = shuffle(tiles);
+                        const hands = {};
+                        for (let i = 0; i < ctx.numPlayers; i++)
+                            hands[String(i)] = shuffled.splice(0, 7);
+                        G.hands = hands;
+                        G.graveyard = shuffled;
+                        G.board = [];
+                        G.boardEnds = { left: null, right: null };
+                        G.passCount = 0;
+                        G.drawPending = false;
+                        G.drawScores = null;
+                        events.endTurn();
+                    },
+                },
+            },
+        },
     },
 
     moves: {
         drawTile: ({ G, ctx }) => {
+            if (G.drawPending) return INVALID_MOVE;
             if (G.graveyard.length === 0) return INVALID_MOVE;
             const tile = G.graveyard.pop();
             G.hands[ctx.currentPlayer].push(tile);
         },
 
-        pass: ({ G, ctx }) => {
+        pass: ({ G, ctx, events }) => {
+            if (G.drawPending) return INVALID_MOVE;
             const { left, right } = G.boardEnds;
             if (left !== null && right !== null &&
                 canPlayDomino(left, right, G.hands[ctx.currentPlayer])) {
@@ -90,9 +116,26 @@ export const DominoGame = {
             }
             if (G.graveyard.length !== 0) return INVALID_MOVE;
             G.passCount += 1;
+
+            if (G.passCount >= ctx.numPlayers) {
+                const scores = {};
+                for (let i = 0; i < ctx.numPlayers; i++)
+                    scores[String(i)] = getHandScore(G.hands[String(i)]);
+                const vals = Object.values(scores);
+                const isDraw = vals.every(s => s === vals[0]);
+                if (isDraw) {
+                    G.drawPending = true;
+                    G.drawScores = scores;
+                    events.setActivePlayers({ value: { '0': 'restart' } });
+                    return;
+                }
+            }
+
+            events.endTurn();
         },
 
-        playTile: ({ G, ctx }, tileIdx, end_played) => {
+        playTile: ({ G, ctx, events }, tileIdx, end_played) => {
+            if (G.drawPending) return INVALID_MOVE;
             const hand = G.hands[ctx.currentPlayer];
             if (tileIdx >= hand.length) return INVALID_MOVE;
 
@@ -105,6 +148,7 @@ export const DominoGame = {
                 G.boardEnds.right = tile.bottom;
                 hand.splice(tileIdx, 1);
                 G.passCount = 0;
+                events.endTurn();
                 return;
             }
 
@@ -119,7 +163,6 @@ export const DominoGame = {
                 ? { top: tile.top, bottom: tile.bottom }
                 : { top: tile.bottom, bottom: tile.top };
 
-
             if (end_played === "left") {
                 G.boardEnds.left = oriented.bottom;
                 G.board.unshift({ domino: oriented, side: end_played });
@@ -130,6 +173,7 @@ export const DominoGame = {
 
             hand.splice(tileIdx, 1);
             G.passCount = 0;
+            events.endTurn();
         },
     },
 
@@ -154,20 +198,27 @@ export const DominoGame = {
     },
 
     endIf: ({ G, ctx }) => {
+        if (G.drawPending) return undefined;
+
+        const scores = {};
+        for (let i = 0; i < ctx.numPlayers; i++)
+            scores[String(i)] = getHandScore(G.hands[String(i)]);
+
         if (G.hands[ctx.currentPlayer].length === 0) {
-            return { winner: String(ctx.currentPlayer) };
+            scores[ctx.currentPlayer] = 0;
+            return { winner: String(ctx.currentPlayer), scores };
         }
+
         if (G.passCount >= ctx.numPlayers) {
             let minScore = Infinity;
-            let winnerId = 0;
+            let winnerId = '0';
             for (let i = 0; i < ctx.numPlayers; i++) {
-                const score = getHandScore(G.hands[i]);
-                if (score < minScore) {
-                    minScore = score;
-                    winnerId = i;
+                if (scores[String(i)] < minScore) {
+                    minScore = scores[String(i)];
+                    winnerId = String(i);
                 }
             }
-            return { winner: String(winnerId) };
+            return { winner: winnerId, scores };
         }
     },
 };
