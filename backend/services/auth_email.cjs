@@ -48,8 +48,19 @@ async function sendPasswordResetEmail(userEmail, code) {
     });
 }
 
+async function sendSignupVerificationEmail(userEmail, code) {
+    return sendCodeEmail({
+        userEmail,
+        code,
+        subject: 'Verify Your Dominoes Account',
+        heading: 'Finish Creating Your Account',
+        body: 'Use this one-time code to verify your email address and finish signing up. It will expire in 5 minutes.'
+    });
+}
+
 module.exports = {
     generateVerificationCode,
     sendEmail,
-    sendPasswordResetEmail
+    sendPasswordResetEmail,
+    sendSignupVerificationEmail
 };
