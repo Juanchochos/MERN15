@@ -2176,6 +2176,9 @@ class GamePage extends StatefulWidget {
 class _GamePageState extends State<GamePage> {
   late final WebViewController _webController;
   bool _isLoaded = false;
+  bool _gameOver = false;
+  Map<String, dynamic>? _gameOverData;
+  bgio.MatchData? _matchData;
 
   @override
   void initState() {
@@ -2215,6 +2218,17 @@ class _GamePageState extends State<GamePage> {
           ),
         );
     }
+
+    client?.subscribe(_onGameUpdate);
+  }
+
+  void _onGameUpdate(Map<String, dynamic> G, bgio.ClientContext ctx) {
+    if (ctx.isGameOver && !_gameOver && mounted) {
+      setState(() {
+        _gameOver = true;
+        _gameOverData = ctx.gameOver;
+      });
+    }
   }
 
   @override
@@ -2223,6 +2237,7 @@ class _GamePageState extends State<GamePage> {
 
     if (!_isLoaded) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      _matchData = args['matchData'] as bgio.MatchData?;
       PlayerConfig playerConfig = PlayerConfig(
         playerID: args['playerID'].toString(),
         username: player.firstName,
@@ -2255,7 +2270,12 @@ class _GamePageState extends State<GamePage> {
     return Scaffold(
       appBar: CustomAppBar(),
       drawer: CustomDrawer(),
-      body: WebViewWidget(controller: _webController),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _webController),
+          if (_gameOver) _buildEndScreen(),
+        ],
+      ),
       /*
       body: Container(
         decoration: BoxDecoration(
@@ -2410,6 +2430,67 @@ class _GamePageState extends State<GamePage> {
         ),
       ),*/
 
+    );
+  }
+
+  Widget _buildEndScreen() {
+    final winnerID = _gameOverData?['winner'] as String?;
+    final scores = _gameOverData?['scores'] as Map<String, dynamic>?;
+    final myPid = client?.playerID ?? (player.isHost ? '0' : '1');
+    final didWin = winnerID == myPid;
+
+    String nameForPid(String pid) {
+      if (_matchData != null) {
+        try {
+          return _matchData!.players.firstWhere((p) => p.id == pid).name;
+        } catch (_) {}
+      }
+      return pid == myPid ? player.firstName : 'Player $pid';
+    }
+
+    return Container(
+      color: Color.fromRGBO(0, 0, 0, 0.85),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              didWin ? 'You Win!' : 'You Lost :(',
+              style: const TextStyle(
+                fontSize: 48,
+                color: Color(0xFFF5F0E8),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+            if (scores != null) ...[
+              ...scores.entries.map((e) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text(
+                  '${nameForPid(e.key)}: ${e.value} pts${e.key == winnerID ? ' 🏆' : ''}',
+                  style: const TextStyle(fontSize: 22, color: Colors.white),
+                ),
+              )),
+              const SizedBox(height: 24),
+            ],
+            ElevatedButton(
+              onPressed: () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const HomePage()),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF259506),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Text(
+                'Return to Home',
+                style: TextStyle(fontSize: 18, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
