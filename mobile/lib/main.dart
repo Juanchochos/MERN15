@@ -18,6 +18,14 @@ const Color white = Color.fromARGB(255, 240, 223, 211);
 const Color beige = Color.fromARGB(255, 207, 172, 148);
 const Color green = Color.fromARGB(255, 37, 149, 6);
 const Color green2 = Color.fromARGB(255, 57, 201, 34);
+const String backendBaseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'http://rickymetral.xyz:5000',
+);
+
+Uri buildBackendUri(String path) {
+  return Uri.parse('$backendBaseUrl$path');
+}
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
@@ -128,42 +136,39 @@ class _LoginPageState extends State<LoginPage> {
     });
     try {
       final response = await http.post(
-        Uri.parse('http://rickymetral.xyz:5000/api/login'),
+        buildBackendUri('/api/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'login': _loginController.text,
           'password': _passwordController.text,
         }),
       );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['error'] == null || data['error'].isEmpty) {
-        _verificationMessage = data['message'];
-          // Verification code sent
-          if(mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => CodeVerificationPage(login: _loginController.text)),
-            );
-          }
-        }
-        /*Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
-        player = Player.fromJson(decoded);
-        //print("Player ID: ${player.userId}, First Name: ${player.firstName}, Last Name: ${player.lastName}");
+      final dynamic decodedResponse = jsonDecode(response.body);
+      final Map<String, dynamic> data =
+          decodedResponse is Map<String, dynamic> ? decodedResponse : {};
 
-        if (data['error'] == null || data['error'].isEmpty) {
-          // Login successful, navigate to home page
+      if (response.statusCode == 200) {
+        if (data['error'] == null || data['error'].toString().isEmpty) {
+          _verificationMessage = data['message'] ?? '';
           if (mounted) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => HomePage()),
+              MaterialPageRoute(
+                builder: (context) =>
+                    CodeVerificationPage(login: _loginController.text),
+              ),
             );
           }
         } else {
           setState(() {
-            _errorMessage = data['error'];
+            _errorMessage = data['error'].toString();
           });
-        }*/
+        }
+      } else if (data['error'] != null &&
+          data['error'].toString().isNotEmpty) {
+        setState(() {
+          _errorMessage = data['error'].toString();
+        });
       } else {
         setState(() {
           _errorMessage = 'Login failed. Please try again.';
@@ -414,14 +419,16 @@ class _CodeVerificationPage extends State<CodeVerificationPage> {
       print(widget.login);
       print(_codeController.text);
       final response = await http.post(
-        Uri.parse('http://rickymetral.xyz:5000/api/verify-login'),
+        buildBackendUri('/api/verify-login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'login': widget.login,
           'code': _codeController.text,
         }),
       );
-        final data = jsonDecode(response.body);
+      final dynamic decodedResponse = jsonDecode(response.body);
+      final Map<String, dynamic> data =
+          decodedResponse is Map<String, dynamic> ? decodedResponse : {};
       if (response.statusCode == 200) {
         Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
         player = Player.fromJson(decoded);
@@ -437,9 +444,14 @@ class _CodeVerificationPage extends State<CodeVerificationPage> {
           }
         } else {
           setState(() {
-            _errorMessage = data['error'];
+            _errorMessage = data['error'].toString();
           });
         }
+      } else if (data['error'] != null &&
+          data['error'].toString().isNotEmpty) {
+        setState(() {
+          _errorMessage = data['error'].toString();
+        });
       } else {
         setState(() {
           _errorMessage = 'Wrong code entered. Please try again.';
@@ -600,7 +612,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     });
     try {
       final response = await http.post(
-        Uri.parse('http://rickymetral.xyz:5000/api/request-password-reset'),
+        buildBackendUri('/api/request-password-reset'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'login': _loginController.text,
@@ -807,7 +819,7 @@ class _SignupPageState extends State<SignupPage> {
     });
     try {
       final response = await http.post(
-        Uri.parse('http://rickymetral.xyz:5000/api/register'),
+        buildBackendUri('/api/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'login': _loginController.text,
@@ -817,27 +829,48 @@ class _SignupPageState extends State<SignupPage> {
           'email': _emailController.text,
         }),
       );
+      final dynamic decodedResponse = jsonDecode(response.body);
+      final Map<String, dynamic> data =
+          decodedResponse is Map<String, dynamic> ? decodedResponse : {};
+
       if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        if (data['error'] == null || data['error'].isEmpty) {
-          // Signup successful, navigate to home page
+        if (data['requiresVerification'] == true) {
           if (mounted) {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => HomePage(
-                  //userId: data['id'],
-                  //firstName: data['firstName'],
-                  //lastName: data['lastName'],
+                builder: (context) => SignupVerificationPage(
+                  login: _loginController.text,
+                  email: _emailController.text,
                 ),
               ),
             );
           }
+        } else if (data['accessToken'] != null) {
+          Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
+          player = Player.fromJson(decoded);
+
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomePage()),
+            );
+          }
+        } else if (data['error'] == null || data['error'].toString().isEmpty) {
+          setState(() {
+            _errorMessage = 'Signup failed. Please try again.';
+          });
         } else {
           setState(() {
-            _errorMessage = data['error'];
+            _errorMessage = data['error'].toString();
           });
         }
+      } else if ((response.statusCode == 400 || response.statusCode == 409) &&
+          data['error'] != null &&
+          data['error'].toString().isNotEmpty) {
+        setState(() {
+          _errorMessage = data['error'].toString();
+        });
       } else {
         setState(() {
           _errorMessage = 'Signup failed. Please try again.';
@@ -1057,6 +1090,218 @@ class _SignupPageState extends State<SignupPage> {
   }
 }
 
+class SignupVerificationPage extends StatefulWidget {
+  final String login;
+  final String email;
+
+  const SignupVerificationPage({
+    super.key,
+    required this.login,
+    required this.email,
+  });
+
+  @override
+  State<SignupVerificationPage> createState() => _SignupVerificationPageState();
+}
+
+class _SignupVerificationPageState extends State<SignupVerificationPage> {
+  final TextEditingController _codeController = TextEditingController();
+  String _errorMessage = '';
+  bool _isLoading = false;
+
+  Future<void> _verifySignup() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final response = await http.post(
+        buildBackendUri('/api/verify-signup'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'login': widget.login,
+          'code': _codeController.text,
+        }),
+      );
+
+      final dynamic decodedResponse = jsonDecode(response.body);
+      final Map<String, dynamic> data =
+          decodedResponse is Map<String, dynamic> ? decodedResponse : {};
+
+      if (response.statusCode == 200 && data['accessToken'] != null) {
+        Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
+        player = Player.fromJson(decoded);
+
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+          );
+        }
+      } else if (data['error'] != null && data['error'].toString().isNotEmpty) {
+        setState(() {
+          _errorMessage = data['error'].toString();
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Verification failed. Please try again.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Network error. Please check your connection.';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ButtonStyle style = ElevatedButton.styleFrom(
+      textStyle: const TextStyle(fontSize: 20),
+      backgroundColor: green,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const SignupPage()),
+            );
+          },
+          icon: Image.asset("assets/images/domino.png"),
+        ),
+        title: const Text('DOMINOES', style: TextStyle(color: white)),
+        backgroundColor: black,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/woodBG.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  color: black,
+                  child: Text(
+                    'SIGN UP',
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Divider(height: 5, thickness: 5, color: green),
+                Container(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage("assets/images/WoodGrain.jpg"),
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SizedBox(height: 20),
+                        Text(
+                          'Enter the 6-digit code we emailed to ${widget.email}.',
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _codeController,
+                          decoration: const InputDecoration(
+                            labelText: 'Verification Code',
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black),
+                            ),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _verifySignup,
+                          style: style,
+                          child: _isLoading
+                              ? const CircularProgressIndicator()
+                              : const Text(
+                                  'Verify Email',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SignupPage(),
+                              ),
+                            );
+                          },
+                          style: style,
+                          child: const Text(
+                            'Back',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        if (_errorMessage.isNotEmpty)
+                          Text(
+                            _errorMessage,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
+}
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
   @override
@@ -1184,7 +1429,7 @@ class CreatePage extends StatefulWidget {
 }
 
 class _CreatePageState extends State<CreatePage> {
-  bgio.Lobby lobby = bgio.Lobby(Uri.parse('http://rickymetral.xyz:5000'));
+  bgio.Lobby lobby = bgio.Lobby(Uri.parse(backendBaseUrl));
 
 
   bool _isLoading = false;
@@ -1350,7 +1595,7 @@ class JoinPage extends StatefulWidget {
 }
 
 class _JoinPageState extends State<JoinPage> {
-  bgio.Lobby lobby = bgio.Lobby(Uri.parse('http://rickymetral.xyz:5000'));
+  bgio.Lobby lobby = bgio.Lobby(Uri.parse(backendBaseUrl));
   final TextEditingController _roomCodeController =
       TextEditingController(); // not hooked up right now
   String matchID = '';
@@ -1553,7 +1798,7 @@ class _LobbyPageState extends State<LobbyPage> {
     //lobby.updatePlayer(gameClient, newName)
 
     final response = await http.post(
-      Uri.parse('http://rickymetral.xyz:5000/games/domino/$matchID/update'),
+      buildBackendUri('/games/domino/$matchID/update'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'playerID': player.isHost ? "0" : "1",
