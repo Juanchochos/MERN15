@@ -2197,6 +2197,12 @@ class _GamePageState extends State<GamePage> {
         ..setBackgroundColor(const Color(0x00000000))
         ..setNavigationDelegate(
           NavigationDelegate(
+            onPageFinished: (String url) {
+              final userData = '{"id":"${player.userId}"}';
+              _webController.runJavaScript(
+                'sessionStorage.setItem("user_data", \'$userData\');',
+              );
+            },
             onWebResourceError: (WebResourceError error) {
               debugPrint('''
                 Page resource error:
