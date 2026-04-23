@@ -433,7 +433,9 @@ class _CodeVerificationPage extends State<CodeVerificationPage> {
       if (response.statusCode == 200) {
         Map<String, dynamic> decoded = JwtDecoder.decode(data['accessToken']);
         player = Player.fromJson(decoded);
-        //print("Player ID: ${player.userId}, First Name: ${player.firstName}, Last Name: ${player.lastName}");
+        print(player.userId);
+        print(decoded);
+        print("Player ID: ${player.userId}, First Name: ${player.firstName}, Last Name: ${player.lastName}");
 
         if (data['error'] == null || data['error'].isEmpty) {
           // Login successful, navigate to home page
@@ -2460,6 +2462,7 @@ class _MatchHistoryPageState extends State<MatchHistoryPage> {
     try {
       //print(widget.login);
       //print(_codeController.text);
+      print('Player ID: ${player.userId}');
       final response = await http.get(
         Uri.parse('http://rickymetral.xyz:5000/api/fetch-match-history?userId=${player.userId}'),
         headers: {'Content-Type': 'application/json'},
@@ -2543,6 +2546,24 @@ class _MatchHistoryPageState extends State<MatchHistoryPage> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // Games
+                        for(int i = 0; i < 5; i++) // Replace with matchHistory.length when implemented
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            margin: const EdgeInsets.symmetric(vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'Match ${i + 1}', // Replace with matchHistory[i].matchID or similar when implemented
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         const SizedBox(height: 24),
                         const SizedBox(height: 24),
                         const SizedBox(height: 24),
