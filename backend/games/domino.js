@@ -72,7 +72,6 @@ export const DominoGame = {
             first: ({ G, ctx }) => findFirstPlayer(G.hands, ctx.numPlayers),
             next: ({ ctx }) => (ctx.playOrderPos + 1) % ctx.numPlayers,
         },
-        moveLimit: 1,
     },
 
     moves: {
@@ -82,7 +81,7 @@ export const DominoGame = {
             G.hands[ctx.currentPlayer].push(tile);
         },
 
-        pass: ({ G, ctx }) => {
+        pass: ({ G, ctx, events }) => {
             const { left, right } = G.boardEnds;
             if (left !== null && right !== null &&
                 canPlayDomino(left, right, G.hands[ctx.currentPlayer])) {
@@ -90,9 +89,10 @@ export const DominoGame = {
             }
             if (G.graveyard.length !== 0) return INVALID_MOVE;
             G.passCount += 1;
+            events.endTurn();
         },
 
-        playTile: ({ G, ctx }, tileIdx, end_played) => {
+        playTile: ({ G, ctx, events }, tileIdx, end_played) => {
             const hand = G.hands[ctx.currentPlayer];
             if (tileIdx >= hand.length) return INVALID_MOVE;
 
@@ -105,6 +105,7 @@ export const DominoGame = {
                 G.boardEnds.right = tile.bottom;
                 hand.splice(tileIdx, 1);
                 G.passCount = 0;
+                events.endTurn();
                 return;
             }
 
@@ -119,7 +120,6 @@ export const DominoGame = {
                 ? { top: tile.top, bottom: tile.bottom }
                 : { top: tile.bottom, bottom: tile.top };
 
-
             if (end_played === "left") {
                 G.boardEnds.left = oriented.bottom;
                 G.board.unshift({ domino: oriented, side: end_played });
@@ -130,6 +130,7 @@ export const DominoGame = {
 
             hand.splice(tileIdx, 1);
             G.passCount = 0;
+            events.endTurn();
         },
     },
 

@@ -13,7 +13,7 @@ import { arrayMove } from '@dnd-kit/sortable';
 import DominoTile from './DominoTile';
 import HandPanel from './HandPanel';
 import DropZone from './DropZone';
-import { canPlayTile } from '../games/domino-helper';
+import { canPlayTile, canPlayDomino } from '../games/domino-helper';
 import type { DragData, DropData } from '../games/dnd-types';
 import type { PlayerConfig } from '../games/player-types';
 import { buildPath } from './Path';
@@ -86,6 +86,8 @@ function Board({
   const myHand: any[] = G.hands[pid] ?? [];
   const isMyTurn = ctx.currentPlayer === pid;
   const boardIsEmpty = G.board.length === 0;
+  const { left, right } = G.boardEnds;
+  const canPlay = boardIsEmpty || (left !== null && canPlayDomino(left, right!, myHand));
 
   const [localOrder, setLocalOrder] = useState<number[]>(() => myHand.map((_, i) => i));
   const [isDragging, setIsDragging] = useState(false);
@@ -303,8 +305,8 @@ function Board({
             </button>
             <button
               onClick={() => moves.pass()}
-              disabled={!isMyTurn || G.graveyard.length > 0}
-              style={btnStyle(!isMyTurn || G.graveyard.length > 0)}
+              disabled={!isMyTurn || G.graveyard.length > 0 || canPlay}
+              style={btnStyle(!isMyTurn || G.graveyard.length > 0 || canPlay)}
             >
               Pass
             </button>
